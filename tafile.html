@@ -12,37 +12,37 @@
     font-family: 'Nunito', sans-serif;
     background: #ffffff;
     min-height: 100vh;
-    color: white;
+    color: #1e1b4b;
     overflow-x: hidden;
   }
   .blob {
     position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
   }
-  .blob1 { width:500px;height:500px;top:-150px;right:-150px;background:radial-gradient(circle,#312e8155 0%,transparent 70%); }
-  .blob2 { width:400px;height:400px;bottom:-100px;left:-100px;background:radial-gradient(circle,#78350f44 0%,transparent 70%); }
+  .blob1 { width:500px;height:500px;top:-150px;right:-150px;background:radial-gradient(circle,#e0e7ff 0%,transparent 70%); }
+  .blob2 { width:400px;height:400px;bottom:-100px;left:-100px;background:radial-gradient(circle,#fef9c3 0%,transparent 70%); }
 
   header {
     position:relative;z-index:10;
-    background:rgba(255,255,255,0.05);
-    border-bottom:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.95);
+    border-bottom:1px solid #e2e8f0;
     padding:16px 32px;
     display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
   }
   .logo { display:flex;align-items:center;gap:12px; }
   .logo-icon { font-size:32px; }
-  .logo-text { font-size:20px;font-weight:900;color:white; }
-  .logo-sub { font-size:13px;color:#94a3b8;font-weight:600;margin-top:2px; }
+  .logo-text { font-size:20px;font-weight:900;color:#1e1b4b; }
+  .logo-sub { font-size:13px;color:#64748b;font-weight:600;margin-top:2px; }
   .header-right { display:flex;align-items:center;gap:16px; }
   .conn-bar { font-size:13px;color:#94a3b8;display:flex;align-items:center;gap:6px; }
   .conn-dot { width:8px;height:8px;border-radius:50%; }
   .conn-ok { background:#22c55e; }
   .conn-err { background:#ef4444; }
   .reset-btn {
-    background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);
+    background:#fee2e2;color:#ef4444;border:1px solid #fecaca;
     border-radius:10px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:700;
     font-family:'Nunito',sans-serif;transition:all .2s;
   }
-  .reset-btn:hover { background:rgba(239,68,68,0.25); }
+  .reset-btn:hover { background:#fecaca; }
 
   main {
     position:relative;z-index:5;
@@ -52,83 +52,65 @@
     max-width:1200px;margin:0 auto;padding:28px 24px 40px;
   }
 
-  /* Kreisā puse — rezultāti */
-  .results-panel {}
   .question-title {
-    font-size:22px;font-weight:900;color:white;
-    margin-bottom:28px;line-height:1.4;
+    font-size:22px;font-weight:900;color:#1e1b4b;
+    margin-bottom:24px;line-height:1.4;
   }
   .total-badge {
     display:inline-flex;align-items:center;gap:8px;
-    background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.3);
+    background:#ede9fe;border:1px solid #c4b5fd;
     border-radius:999px;padding:6px 16px;font-size:14px;font-weight:700;
-    color:#a5b4fc;margin-bottom:24px;
+    color:#6d28d9;margin-bottom:28px;
   }
 
-  .result-item {
-    margin-bottom:20px;
-  }
+  .result-item { margin-bottom:22px; }
   .result-top {
     display:flex;justify-content:space-between;align-items:flex-end;
     margin-bottom:8px;gap:12px;
   }
-  .result-label {
-    font-size:15px;font-weight:700;color:#e2e8f0;line-height:1.4;flex:1;
-  }
-  .result-numbers {
-    font-size:14px;font-weight:800;color:#94a3b8;white-space:nowrap;
-    text-align:right;
-  }
-  .result-pct-big { font-size:22px;font-weight:900;color:white; }
+  .result-label { font-size:15px;font-weight:700;color:#1e293b;line-height:1.4;flex:1; }
+  .result-pct-big { font-size:22px;font-weight:900; }
+  .result-count { font-size:12px;color:#94a3b8;text-align:right; }
   .bar-track {
-    height:18px;background:rgba(255,255,255,0.06);
+    height:18px;background:#f1f5f9;
     border-radius:999px;overflow:hidden;
   }
   .bar-fill {
     height:100%;border-radius:999px;
     transition:width .6s cubic-bezier(.4,0,.2,1);
-    position:relative;
-  }
-  .bar-fill::after {
-    content:'';position:absolute;top:0;left:0;right:0;bottom:0;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15));
-    border-radius:999px;
   }
 
-  /* Labā puse — QR */
-  .qr-panel {
-    display:flex;flex-direction:column;gap:16px;
-  }
+  /* Labā puse */
+  .qr-panel { display:flex;flex-direction:column;gap:16px; }
   .qr-card {
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
+    background:#f8fafc;border:1px solid #e2e8f0;
     border-radius:20px;padding:24px;text-align:center;
   }
-  .qr-label { font-size:13px;font-weight:700;color:#94a3b8;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px; }
+  .qr-label { font-size:13px;font-weight:700;color:#64748b;margin-bottom:16px;text-transform:uppercase;letter-spacing:1px; }
   .qr-box {
     background:white;border-radius:16px;padding:16px;
     display:inline-block;margin-bottom:16px;
+    border:1px solid #e2e8f0;
   }
-  .qr-url { font-size:12px;color:#64748b;word-break:break-all;line-height:1.4; }
+  .qr-url { font-size:12px;color:#94a3b8;word-break:break-all;line-height:1.4; }
 
   .stats-card {
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
+    background:#f8fafc;border:1px solid #e2e8f0;
     border-radius:20px;padding:20px;
   }
-  .stats-title { font-size:13px;font-weight:700;color:#94a3b8;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px; }
+  .stats-title { font-size:13px;font-weight:700;color:#64748b;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px; }
   .stat-row {
     display:flex;justify-content:space-between;align-items:center;
-    padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);
+    padding:8px 0;border-bottom:1px solid #e2e8f0;
   }
   .stat-row:last-child { border-bottom:none; }
-  .stat-label { font-size:14px;color:#94a3b8; }
-  .stat-value { font-size:18px;font-weight:900;color:white; }
+  .stat-label { font-size:14px;color:#64748b; }
+  .stat-value { font-size:18px;font-weight:900;color:#1e1b4b; }
 
   .live-badge {
     display:inline-flex;align-items:center;gap:6px;
-    background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);
-    border-radius:999px;padding:5px 14px;font-size:12px;font-weight:700;color:#4ade80;
+    background:#dcfce7;border:1px solid #bbf7d0;
+    border-radius:999px;padding:5px 14px;font-size:12px;font-weight:700;color:#16a34a;
   }
   .live-dot {
     width:7px;height:7px;border-radius:50%;background:#22c55e;
@@ -167,14 +149,12 @@
 </header>
 
 <main>
-  <!-- Kreisā puse: rezultāti -->
   <div class="results-panel">
     <div class="question-title">Kā pašportrets saistās ar mākslinieka identitāti?</div>
     <div class="total-badge">👥 Kopā balsojuši: <span id="total-count">0</span></div>
     <div id="results-list"></div>
   </div>
 
-  <!-- Labā puse: QR + statistika -->
   <div class="qr-panel">
     <div class="qr-card">
       <div class="qr-label">📱 Skolēni skenē šeit</div>
@@ -228,10 +208,8 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-
   let votes = OPTIONS.map(() => 0);
 
-  // QR kods
   new QRCode(document.getElementById("qrcode"), {
     text: "https://jolantagrosberga.github.io",
     width: 180, height: 180,
@@ -239,14 +217,12 @@
     correctLevel: QRCode.CorrectLevel.H
   });
 
-  // Savienojums
   onValue(ref(db, '.info/connected'), snap => {
     const ok = snap.val();
     document.getElementById('conn-dot').className = 'conn-dot ' + (ok ? 'conn-ok' : 'conn-err');
     document.getElementById('conn-text').textContent = ok ? 'Savienots' : 'Nav savienojuma';
   });
 
-  // Reāllaika rezultāti
   onValue(ref(db, 'aptaujas/' + POLL_ID + '/votes'), snap => {
     if (snap.val()) votes = snap.val();
     render();
@@ -256,12 +232,9 @@
     const total = votes.reduce((a,b) => a+b, 0);
     document.getElementById('total-count').textContent = total;
     document.getElementById('stat-total').textContent = total;
-
-    // Populārākā atbilde
     const maxIdx = votes.indexOf(Math.max(...votes));
     document.getElementById('stat-top').textContent = total > 0 ? (maxIdx + 1) + '. variants' : '—';
 
-    // Rezultātu joslas
     document.getElementById('results-list').innerHTML = OPTIONS.map((opt, i) => {
       const pct = total ? Math.round(votes[i]/total*100) : 0;
       const color = COLORS[i];
@@ -269,13 +242,13 @@
       return `<div class="result-item">
         <div class="result-top">
           <div class="result-label">${isTop ? '🏆 ' : ''}${opt}</div>
-          <div class="result-numbers">
+          <div>
             <div class="result-pct-big" style="color:${color}">${pct}%</div>
-            <div style="font-size:12px;color:#64748b">${votes[i]} balsis</div>
+            <div class="result-count">${votes[i]} balsis</div>
           </div>
         </div>
         <div class="bar-track">
-          <div class="bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}cc)"></div>
+          <div class="bar-fill" style="width:${pct}%;background:${color}"></div>
         </div>
       </div>`;
     }).join('');
