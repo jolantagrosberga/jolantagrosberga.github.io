@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9. klase · 5. tēma · Aptauja</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #f0f4ff;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .blob {
+    position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+  }
+  .blob1 { width:300px;height:300px;top:-100px;right:-80px;background:radial-gradient(circle,#c7d2fe 0%,transparent 70%); }
+  .blob2 { width:260px;height:260px;bottom:-80px;left:-80px;background:radial-gradient(circle,#fde68a 0%,transparent 70%); }
+
+  header {
+    position:relative;z-index:10;
+    background:rgba(255,255,255,0.9);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid #e2e8f0;
+    padding:14px 20px;
+    text-align:center;
+  }
+  .logo-icon { font-size:28px; }
+  .logo-text { font-size:18px;font-weight:900;color:#1e1b4b; }
+  .logo-sub { font-size:12px;color:#94a3b8;font-weight:600;margin-top:2px; }
+
+  main {
+    position:relative;z-index:5;
+    max-width:480px;margin:0 auto;padding:24px 16px 60px;
+  }
+
+  .card {
+    background:rgba(255,255,255,0.95);
+    border-radius:20px;padding:22px 20px;margin-bottom:16px;
+    box-shadow:0 4px 24px #1e1b4b0d;border:1px solid #e8eaf6;
+    animation:fadeUp .3s ease both;
+  }
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .card-title { font-size:16px;font-weight:800;color:#1e1b4b;margin-bottom:16px;line-height:1.4; }
+
+  .opt-btn {
+    display:block;width:100%;position:relative;overflow:hidden;
+    border:2px solid #e2e8f0;border-radius:14px;
+    padding:14px 16px;margin-bottom:10px;
+    text-align:left;cursor:pointer;background:#f8fafc;
+    font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;
+    transition:border-color .15s,transform .1s;
+    line-height:1.4;
+  }
+  .opt-btn:hover:not(:disabled) { transform:translateY(-1px);box-shadow:0 4px 12px #4f46e522; }
+  .opt-btn:disabled { cursor:default; }
+  .opt-inner { display:flex;align-items:flex-start;gap:10px;position:relative;z-index:1; }
+  .opt-dot { width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:3px; }
+  .opt-bar {
+    position:absolute;left:0;top:0;bottom:0;border-radius:12px;
+    transition:width .5s cubic-bezier(.4,0,.2,1);z-index:0;
+  }
+  .opt-pct {
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    font-size:13px;font-weight:800;color:#475569;z-index:1;
+  }
+  .checkmark { margin-left:auto;font-size:16px;flex-shrink:0; }
+  .voted-msg {
+    margin-top:14px;text-align:center;font-size:14px;
+    color:#16a34a;font-weight:700;padding:10px;
+    background:#f0fdf4;border-radius:12px;
+  }
+  .conn-bar {
+    text-align:center;font-size:12px;color:#94a3b8;
+    margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .conn-dot { width:7px;height:7px;border-radius:50%; }
+  .conn-ok { background:#22c55e; }
+  .conn-err { background:#ef4444; }
+
+  .loading {
+    text-align:center;padding:40px;color:#94a3b8;font-size:16px;font-weight:700;
+  }
+</style>
+</head>
+<body>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+
+<header>
+  <div class="logo-icon">🎨</div>
+  <div class="logo-text">9. klase · 5. tēma</div>
+  <div class="logo-sub">Pašportrets un identitāte vizuālajā mākslā</div>
+</header>
+
+<main>
+  <div class="conn-bar">
+    <div class="conn-dot conn-ok" id="conn-dot"></div>
+    <span id="conn-text">Savienojas...</span>
+  </div>
+  <div id="poll-container" class="loading">⏳ Ielādē aptauju...</div>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfsAK78eIDfSXdV2rJBM1ZbCdXcwx0YDQ",
+    authDomain: "klases-aptauja---9kl---5.firebaseapp.com",
+    databaseURL: "https://klases-aptauja---9kl---5-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "klases-aptauja---9kl---5",
+    storageBucket: "klases-aptauja---9kl---5.firebasestorage.app",
+    messagingSenderId: "281597110184",
+    appId: "1:281597110184:web:13817250b72ea39f845f9d"
+  };
+
+  const COLORS = ['#FF6B6B','#FFA235','#4ECDC4','#45B7D1','#96CEB4'];
+  const POLL_ID = "9kl-tema5-paspportrets";
+  const QUESTION = "Kā pašportrets saistās ar mākslinieka identitāti?";
+  const OPTIONS = [
+    "Mākslinieka identitāti var izteikt tikai pašportretā",
+    "Pašportrets ir kā mākslinieka iekšējās pasaules spogulis — viens no identitātes izteikšanas veidiem",
+    "Mākslinieka identitāte izpaužas tikai viņa mākslas darbos",
+    "Identitāti nevar izteikt ar mākslu",
+    "Pašportrets neizsaka identitāti, bet mākslinieka iekšējās sajūtas"
+  ];
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let votes = OPTIONS.map(() => 0);
+  let hasVoted = false;
+  let myVote = null;
+
+  // Savienojums
+  onValue(ref(db, '.info/connected'), snap => {
+    const ok = snap.val();
+    document.getElementById('conn-dot').className = 'conn-dot ' + (ok ? 'conn-ok' : 'conn-err');
+    document.getElementById('conn-text').textContent = ok ? 'Savienots' : 'Nav savienojuma';
+  });
+
+  // Reāllaika balsojumi
+  onValue(ref(db, 'aptaujas/' + POLL_ID + '/votes'), snap => {
+    if (snap.val()) votes = snap.val();
+    render();
+  });
+
+  function render() {
+    const total = votes.reduce((a,b) => a+b, 0);
+    const opts = OPTIONS.map((opt, i) => {
+      const pct = total ? Math.round(votes[i]/total*100) : 0;
+      const chosen = myVote === i;
+      const color = COLORS[i];
+      return `<button class="opt-btn" ${hasVoted?'disabled':''} onclick="castVote(${i})"
+        style="border-color:${chosen?color:'#e2e8f0'};background:${hasVoted?(chosen?color+'22':'#f8fafc'):'#f8fafc'}">
+        ${hasVoted?`<div class="opt-bar" style="width:${pct}%;background:${color}44"></div>`:''}
+        <div class="opt-inner">
+          <div class="opt-dot" style="background:${color}"></div>
+          <span style="font-weight:${chosen?800:600}">${opt}</span>
+          ${chosen?'<span class="checkmark">✓</span>':''}
+        </div>
+        ${hasVoted?`<span class="opt-pct">${pct}%</span>`:''}
+      </button>`;
+    }).join('');
+
+    document.getElementById('poll-container').innerHTML = `
+      <div class="card">
+        <div class="card-title">${QUESTION}</div>
+        ${opts}
+        ${hasVoted?`<div class="voted-msg">✅ Paldies par atbildi! Kopā balsojuši: ${total}</div>`:''}
+      </div>`;
+  }
+
+  window.castVote = async function(i) {
+    if (hasVoted) return;
+    hasVoted = true; myVote = i;
+    const newVotes = [...votes];
+    newVotes[i]++;
+    render();
+    await update(ref(db, 'aptaujas/' + POLL_ID), { votes: newVotes });
+  };
+</script>
+</body>
+</html>
