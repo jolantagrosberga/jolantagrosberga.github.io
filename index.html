@@ -14,9 +14,7 @@
     position: relative;
     overflow-x: hidden;
   }
-  .blob {
-    position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
-  }
+  .blob { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
   .blob1 { width:300px;height:300px;top:-100px;right:-80px;background:radial-gradient(circle,#c7d2fe 0%,transparent 70%); }
   .blob2 { width:260px;height:260px;bottom:-80px;left:-80px;background:radial-gradient(circle,#fde68a 0%,transparent 70%); }
 
@@ -37,56 +35,80 @@
     max-width:480px;margin:0 auto;padding:24px 16px 60px;
   }
 
-  .card {
+  /* Koda ievades ekrāns */
+  .code-screen {
     background:rgba(255,255,255,0.95);
-    border-radius:20px;padding:22px 20px;margin-bottom:16px;
-    box-shadow:0 4px 24px #1e1b4b0d;border:1px solid #e8eaf6;
+    border-radius:20px;padding:32px 24px;
+    text-align:center;
+    box-shadow:0 4px 24px #1e1b4b0d;
+    border:1px solid #e8eaf6;
     animation:fadeUp .3s ease both;
   }
+  .code-icon { font-size:48px;margin-bottom:12px; }
+  .code-title { font-size:20px;font-weight:900;color:#1e1b4b;margin-bottom:8px; }
+  .code-desc { font-size:14px;color:#64748b;margin-bottom:24px;line-height:1.5; }
+  .code-input {
+    width:100%;padding:16px;border-radius:14px;
+    border:3px solid #e2e8f0;
+    font-size:28px;font-weight:900;text-align:center;
+    letter-spacing:6px;text-transform:uppercase;
+    font-family:'Nunito',sans-serif;
+    background:#f8fafc;outline:none;
+    margin-bottom:12px;
+    transition:border-color .15s;
+  }
+  .code-input:focus { border-color:#6366f1; }
+  .code-error { color:#ef4444;font-size:13px;font-weight:700;margin-bottom:12px;min-height:18px; }
+  .code-btn {
+    width:100%;padding:15px;border-radius:14px;border:none;
+    background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;
+    font-size:17px;font-weight:800;cursor:pointer;
+    font-family:'Nunito',sans-serif;
+    box-shadow:0 4px 18px #4f46e555;
+    transition:transform .15s;
+  }
+  .code-btn:hover { transform:translateY(-2px); }
+
+  /* Balsošanas ekrāns */
+  .poll-screen { animation:fadeUp .3s ease both; }
+  .session-badge {
+    display:inline-flex;align-items:center;gap:6px;
+    background:#ede9fe;border:1px solid #c4b5fd;
+    border-radius:999px;padding:5px 14px;
+    font-size:12px;font-weight:700;color:#6d28d9;
+    margin-bottom:16px;
+  }
+  .card {
+    background:rgba(255,255,255,0.95);
+    border-radius:20px;padding:22px 20px;
+    box-shadow:0 4px 24px #1e1b4b0d;border:1px solid #e8eaf6;
+  }
+  .card-title { font-size:16px;font-weight:800;color:#1e1b4b;margin-bottom:16px;line-height:1.4; }
+  .opt-btn {
+    display:block;width:100%;position:relative;overflow:hidden;
+    border:2px solid #e2e8f0;border-radius:12px;
+    padding:12px 14px;margin-bottom:8px;
+    text-align:left;cursor:pointer;background:#f8fafc;
+    font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;
+    color:#1e1b4b;transition:border-color .15s,transform .1s;line-height:1.4;
+  }
+  .opt-btn:hover:not(:disabled) { transform:translateY(-1px);box-shadow:0 4px 12px #4f46e522; }
+  .opt-btn:disabled { cursor:default; }
+  .opt-inner { display:flex;align-items:flex-start;gap:8px;position:relative;z-index:1; }
+  .opt-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px; }
+  .opt-bar { position:absolute;left:0;top:0;bottom:0;border-radius:10px;transition:width .5s ease;z-index:0; }
+  .opt-pct { position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:800;color:#475569;z-index:1; }
+  .voted-msg { margin-top:12px;text-align:center;font-size:13px;color:#16a34a;font-weight:700;padding:8px;background:#f0fdf4;border-radius:10px; }
+  .conn-bar { font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:5px;margin-bottom:14px; }
+  .conn-dot { width:6px;height:6px;border-radius:50%; }
+  .conn-ok { background:#22c55e; }
+  .conn-err { background:#ef4444; }
+
   @keyframes fadeUp {
     from{opacity:0;transform:translateY(10px);}
     to{opacity:1;transform:translateY(0);}
   }
-  .card-title { font-size:16px;font-weight:800;color:#1e1b4b;margin-bottom:16px;line-height:1.4; }
-
-  .opt-btn {
-    display:block;width:100%;position:relative;overflow:hidden;
-    border:2px solid #e2e8f0;border-radius:14px;
-    padding:14px 16px;margin-bottom:10px;
-    text-align:left;cursor:pointer;background:#f8fafc;
-    font-family:'Nunito',sans-serif;font-size:14px;font-weight:600;
-    transition:border-color .15s,transform .1s;
-    line-height:1.4;
-  }
-  .opt-btn:hover:not(:disabled) { transform:translateY(-1px);box-shadow:0 4px 12px #4f46e522; }
-  .opt-btn:disabled { cursor:default; }
-  .opt-inner { display:flex;align-items:flex-start;gap:10px;position:relative;z-index:1; }
-  .opt-dot { width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:3px; }
-  .opt-bar {
-    position:absolute;left:0;top:0;bottom:0;border-radius:12px;
-    transition:width .5s cubic-bezier(.4,0,.2,1);z-index:0;
-  }
-  .opt-pct {
-    position:absolute;right:12px;top:50%;transform:translateY(-50%);
-    font-size:13px;font-weight:800;color:#475569;z-index:1;
-  }
-  .checkmark { margin-left:auto;font-size:16px;flex-shrink:0; }
-  .voted-msg {
-    margin-top:14px;text-align:center;font-size:14px;
-    color:#16a34a;font-weight:700;padding:10px;
-    background:#f0fdf4;border-radius:12px;
-  }
-  .conn-bar {
-    text-align:center;font-size:12px;color:#94a3b8;
-    margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:6px;
-  }
-  .conn-dot { width:7px;height:7px;border-radius:50%; }
-  .conn-ok { background:#22c55e; }
-  .conn-err { background:#ef4444; }
-
-  .loading {
-    text-align:center;padding:40px;color:#94a3b8;font-size:16px;font-weight:700;
-  }
+  .hidden { display:none!important; }
 </style>
 </head>
 <body>
@@ -100,11 +122,30 @@
 </header>
 
 <main>
-  <div class="conn-bar">
-    <div class="conn-dot conn-ok" id="conn-dot"></div>
-    <span id="conn-text">Savienojas...</span>
+  <!-- KODA IEVADE -->
+  <div id="code-screen" class="code-screen">
+    <div class="code-icon">📱</div>
+    <div class="code-title">Ievadi sesijas kodu</div>
+    <div class="code-desc">Skolotājs parāda kodu uz tāfeles. Ievadi to šeit, lai pievienotos aptaujai.</div>
+    <input type="text" class="code-input" id="code-input" maxlength="6" placeholder="ABC123"
+      oninput="this.value=this.value.toUpperCase()"
+      onkeydown="if(event.key==='Enter')joinSession()">
+    <div class="code-error" id="code-error"></div>
+    <button class="code-btn" onclick="joinSession()">Pievienoties →</button>
   </div>
-  <div id="poll-container" class="loading">⏳ Ielādē aptauju...</div>
+
+  <!-- BALSOŠANA -->
+  <div id="poll-screen" class="poll-screen hidden">
+    <div class="conn-bar">
+      <div class="conn-dot conn-ok" id="conn-dot"></div>
+      <span id="conn-text">Savienots</span>
+    </div>
+    <div class="session-badge">🔑 Sesija: <span id="session-label"></span></div>
+    <div class="card">
+      <div class="card-title">Kā pašportrets saistās ar mākslinieka identitāti?</div>
+      <div id="options"></div>
+    </div>
+  </div>
 </main>
 
 <script type="module">
@@ -122,8 +163,6 @@
   };
 
   const COLORS = ['#FF6B6B','#FFA235','#4ECDC4','#45B7D1','#96CEB4'];
-  const POLL_ID = "9kl-tema5-paspportrets";
-  const QUESTION = "Kā pašportrets saistās ar mākslinieka identitāti?";
   const OPTIONS = [
     "Mākslinieka identitāti var izteikt tikai pašportretā",
     "Pašportrets ir kā mākslinieka iekšējās pasaules spogulis — viens no identitātes izteikšanas veidiem",
@@ -138,23 +177,47 @@
   let votes = OPTIONS.map(() => 0);
   let hasVoted = false;
   let myVote = null;
+  let sessionCode = null;
 
-  // Savienojums
+  // Pārbaudi vai sesijas kods jau URL parametrā
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCode = urlParams.get('s');
+  if (urlCode) {
+    startSession(urlCode.toUpperCase());
+  }
+
   onValue(ref(db, '.info/connected'), snap => {
     const ok = snap.val();
-    document.getElementById('conn-dot').className = 'conn-dot ' + (ok ? 'conn-ok' : 'conn-err');
-    document.getElementById('conn-text').textContent = ok ? 'Savienots' : 'Nav savienojuma';
+    const dot = document.getElementById('conn-dot');
+    const txt = document.getElementById('conn-text');
+    if (dot) dot.className = 'conn-dot ' + (ok ? 'conn-ok' : 'conn-err');
+    if (txt) txt.textContent = ok ? 'Savienots' : 'Nav savienojuma';
   });
 
-  // Reāllaika balsojumi
-  onValue(ref(db, 'aptaujas/' + POLL_ID + '/votes'), snap => {
-    if (snap.val()) votes = snap.val();
-    render();
-  });
+  window.joinSession = function() {
+    const code = document.getElementById('code-input').value.trim().toUpperCase();
+    const errEl = document.getElementById('code-error');
+    if (code.length < 3) { errEl.textContent = 'Kods ir pārāk īss!'; return; }
+    errEl.textContent = '';
+    startSession(code);
+  };
+
+  function startSession(code) {
+    sessionCode = code;
+    document.getElementById('code-screen').classList.add('hidden');
+    document.getElementById('poll-screen').classList.remove('hidden');
+    document.getElementById('session-label').textContent = code;
+
+    onValue(ref(db, 'sesijas/' + code + '/votes'), snap => {
+      if (snap.val()) votes = snap.val();
+      else votes = OPTIONS.map(() => 0);
+      render();
+    });
+  }
 
   function render() {
     const total = votes.reduce((a,b) => a+b, 0);
-    const opts = OPTIONS.map((opt, i) => {
+    document.getElementById('options').innerHTML = OPTIONS.map((opt, i) => {
       const pct = total ? Math.round(votes[i]/total*100) : 0;
       const chosen = myVote === i;
       const color = COLORS[i];
@@ -164,27 +227,19 @@
         <div class="opt-inner">
           <div class="opt-dot" style="background:${color}"></div>
           <span style="font-weight:${chosen?800:600}">${opt}</span>
-          ${chosen?'<span class="checkmark">✓</span>':''}
+          ${chosen?'<span style="margin-left:auto">✓</span>':''}
         </div>
         ${hasVoted?`<span class="opt-pct">${pct}%</span>`:''}
       </button>`;
-    }).join('');
-
-    document.getElementById('poll-container').innerHTML = `
-      <div class="card">
-        <div class="card-title">${QUESTION}</div>
-        ${opts}
-        ${hasVoted?`<div class="voted-msg">✅ Paldies par atbildi! Kopā balsojuši: ${total}</div>`:''}
-      </div>`;
+    }).join('') + (hasVoted ? `<div class="voted-msg">✅ Paldies! Kopā balsojuši: ${total}</div>` : '');
   }
 
   window.castVote = async function(i) {
-    if (hasVoted) return;
+    if (hasVoted || !sessionCode) return;
     hasVoted = true; myVote = i;
-    const newVotes = [...votes];
-    newVotes[i]++;
+    const newVotes = [...votes]; newVotes[i]++;
     render();
-    await update(ref(db, 'aptaujas/' + POLL_ID), { votes: newVotes });
+    await update(ref(db, 'sesijas/' + sessionCode), { votes: newVotes });
   };
 </script>
 </body>
