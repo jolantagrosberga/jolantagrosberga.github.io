@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Domu Karte</title>
-
+ 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
+ 
   const firebaseConfig = {
     apiKey: "AIzaSyB_KlBl04dLKakEJkdtNn2dETGJKxcThfw",
     authDomain: "mindmap-skolotajiem.firebaseapp.com",
@@ -18,10 +18,10 @@
     messagingSenderId: "883861703069",
     appId: "1:883861703069:web:506b783a28fa73d42d8774"
   };
-
+ 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-
+ 
   window._db = db;
   window._refs = {
     nodes: ref(db, 'mindmap/nodes'),
@@ -30,12 +30,12 @@
   window._fb = { ref, push, onValue, remove, update, set };
   document.dispatchEvent(new Event('firebase-ready'));
 </script>
-
+ 
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
-
+ 
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
 :root {
   --bg: #f5f0e8;
   --ink: #1c1814;
@@ -52,9 +52,9 @@
   --t: #1a8a7a;
   --br: #7a5230;
 }
-
+ 
 html, body { width: 100%; height: 100%; overflow: hidden; }
-
+ 
 body {
   font-family: 'Nunito', sans-serif;
   background: var(--bg);
@@ -63,7 +63,7 @@ body {
   height: 100vh;
   user-select: none;
 }
-
+ 
 /* ── TOOLBAR ── */
 #tb {
   background: var(--panel);
@@ -77,16 +77,16 @@ body {
   box-shadow: 0 2px 10px var(--shadow);
   z-index: 100;
 }
-
+ 
 #tb h1 {
   font-family: 'Caveat', cursive;
   font-size: 24px;
   color: var(--r);
   white-space: nowrap;
 }
-
+ 
 .sep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
-
+ 
 .btn {
   padding: 6px 13px;
   border-radius: 8px;
@@ -104,7 +104,7 @@ body {
 .btn-g:hover { background: var(--bg); }
 .btn-d  { background: transparent; color: #c0392b; border-color: #c0392b; }
 .btn-d:hover { background: #c0392b; color: #fff; }
-
+ 
 .mode-btn {
   padding: 6px 11px;
   border-radius: 8px;
@@ -118,7 +118,7 @@ body {
   transition: all .15s;
 }
 .mode-btn.on { background: var(--ink); color: #fff; border-color: var(--ink); }
-
+ 
 .cdot {
   width: 22px; height: 22px;
   border-radius: 50%;
@@ -129,7 +129,7 @@ body {
 }
 .cdot:hover { transform: scale(1.2); }
 .cdot.on { border-color: var(--ink); transform: scale(1.15); }
-
+ 
 #st {
   margin-left: auto;
   display: flex;
@@ -148,7 +148,7 @@ body {
 }
 #sdot.ok { background: var(--g); }
 #sdot.err { background: var(--r); }
-
+ 
 /* ── CANVAS ── */
 #wrap {
   flex: 1;
@@ -159,7 +159,7 @@ body {
   background-size: 26px 26px;
   touch-action: none;
 }
-
+ 
 #svg {
   position: absolute;
   inset: 0;
@@ -167,13 +167,13 @@ body {
   pointer-events: none;
   z-index: 1;
 }
-
+ 
 #cv {
   position: absolute;
   inset: 0;
   z-index: 2;
 }
-
+ 
 /* ── NODES ── */
 .node {
   position: absolute;
@@ -193,7 +193,7 @@ body {
 .node:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.2); }
 .node.dragging { cursor: grabbing; z-index: 50; box-shadow: 0 14px 40px rgba(0,0,0,0.25); }
 .node.root { border-radius: 22px; padding: 13px 20px; min-width: 120px; }
-
+ 
 .node-text {
   font-family: 'Caveat', cursive;
   font-size: 19px;
@@ -204,7 +204,7 @@ body {
   line-height: 1.25;
 }
 .node.root .node-text { font-size: 23px; }
-
+ 
 .node-del {
   position: absolute;
   top: -10px; right: -10px;
@@ -223,9 +223,9 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 .node:hover .node-del { display: block; }
-
+ 
 .conn-src { outline: 3px solid var(--b); outline-offset: 3px; }
-
+ 
 /* ── MODAL ── */
 #overlay {
   position: fixed;
@@ -238,7 +238,7 @@ body {
   backdrop-filter: blur(4px);
 }
 #overlay.hide { display: none; }
-
+ 
 #modal {
   background: var(--panel);
   border-radius: 20px;
@@ -267,7 +267,7 @@ body {
   outline: none;
 }
 #minput:focus { border-color: var(--r); }
-
+ 
 #mcolors { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
 .mcdot {
   width: 30px; height: 30px;
@@ -277,9 +277,9 @@ body {
   transition: all .15s;
 }
 .mcdot.on { border-color: var(--ink); transform: scale(1.12); }
-
+ 
 #mbtns { display: flex; gap: 8px; justify-content: flex-end; }
-
+ 
 /* ── ZOOM ── */
 #zc {
   position: fixed;
@@ -303,7 +303,7 @@ body {
   transition: all .15s;
 }
 .zbtn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
-
+ 
 /* ── HINT ── */
 #hint {
   position: fixed;
@@ -323,22 +323,22 @@ body {
 </style>
 </head>
 <body>
-
+ 
 <!-- TOOLBAR -->
 <div id="tb">
   <h1>🧠 Domu Karte</h1>
   <div class="sep"></div>
-
+ 
   <button class="mode-btn on" id="m-move" onclick="setMode('move')">✋ Pārvietot</button>
   <button class="mode-btn" id="m-conn" onclick="setMode('conn')">🔗 Savienot</button>
-
+ 
   <div class="sep"></div>
-
+ 
   <button class="btn btn-p" onclick="openAdd()">＋ Pievienot</button>
   <button class="btn btn-g" onclick="addRoot()">⭐ Centrāls</button>
-
+ 
   <div class="sep"></div>
-
+ 
   <div style="display:flex;gap:5px;align-items:center;" id="cp">
     <div class="cdot on" style="background:var(--r)" data-c="var(--r)" onclick="pickColor(this)"></div>
     <div class="cdot" style="background:var(--b)" data-c="var(--b)" onclick="pickColor(this)"></div>
@@ -349,16 +349,16 @@ body {
     <div class="cdot" style="background:var(--t)" data-c="var(--t)" onclick="pickColor(this)"></div>
     <div class="cdot" style="background:var(--br)" data-c="var(--br)" onclick="pickColor(this)"></div>
   </div>
-
+ 
   <div class="sep"></div>
   <button class="btn btn-d" onclick="doClear()">🗑 Notīrīt</button>
-
+ 
   <div id="st">
     <div id="sdot"></div>
     <span id="stxt">Savienojas...</span>
   </div>
 </div>
-
+ 
 <!-- CANVAS -->
 <div id="wrap">
   <svg id="svg">
@@ -370,7 +370,7 @@ body {
   </svg>
   <div id="cv"></div>
 </div>
-
+ 
 <!-- MODAL -->
 <div id="overlay" class="hide">
   <div id="modal">
@@ -392,16 +392,16 @@ body {
     </div>
   </div>
 </div>
-
+ 
 <!-- ZOOM -->
 <div id="zc">
   <button class="zbtn" onclick="doZoom(1.15)">＋</button>
   <button class="zbtn" onclick="doZoom(0.87)">－</button>
   <button class="zbtn" onclick="resetView()" title="Atjaunot">⌂</button>
 </div>
-
+ 
 <div id="hint">💡 Divkārt klikšķini uz fona → jauns mezgls &nbsp;|&nbsp; Velc mezglus &nbsp;|&nbsp; 🔗 Savienot → klikšķini divus mezglus</div>
-
+ 
 <script>
 // ── STATE ──
 let mode = 'move';
@@ -413,7 +413,7 @@ let editId = null;
 let connFrom = null;
 let sc = 1, px = 0, py = 0;
 let fbOk = false;
-
+ 
 // Resolve CSS var to hex on first use
 const COLORS = {
   'var(--r)':'#e8694a','var(--b)':'#4a90d9','var(--g)':'#48b56a',
@@ -421,7 +421,7 @@ const COLORS = {
   'var(--t)':'#1a8a7a','var(--br)':'#7a5230'
 };
 function res(c){ return COLORS[c] || c; }
-
+ 
 // ── FIREBASE ──
 document.addEventListener('firebase-ready', () => {
   fbOk = true;
@@ -431,12 +431,12 @@ document.addEventListener('firebase-ready', () => {
   onValue(window._refs.conns, snap => { conns = snap.val()||{}; renderConns(); });
 });
 setTimeout(()=>{ if(!fbOk) setStatus('err','Kļūda — pārbaudi Firebase!'); },5000);
-
+ 
 function setStatus(s,t){
   document.getElementById('sdot').className=s;
   document.getElementById('stxt').textContent=t;
 }
-
+ 
 async function fbPush(refKey, data){
   if(!fbOk) return null;
   const r = await window._fb.push(window._refs[refKey], data);
@@ -457,7 +457,7 @@ async function fbSet(path, val){
   const r = window._fb.ref(window._db, path);
   await window._fb.set(r, val);
 }
-
+ 
 // ── MODE ──
 function setMode(m){
   mode=m;
@@ -471,7 +471,7 @@ function setMode(m){
     ? '🔗 Klikšķini uz pirmā mezgla, tad uz otrā, lai savienotu'
     : '💡 Divkārt klikšķini uz fona → jauns mezgls  |  Velc mezglus');
 }
-
+ 
 // ── COLOR ──
 function pickColor(el){
   document.querySelectorAll('#cp .cdot').forEach(d=>d.classList.remove('on'));
@@ -490,7 +490,7 @@ function syncMColors(){
     d.classList.toggle('on', res(d.dataset.c)===mcolor);
   });
 }
-
+ 
 // ── MODAL ──
 let pendPos=null;
 function openAdd(x,y){
@@ -538,7 +538,7 @@ async function addRoot(){
   const y=(wrap.clientHeight/2-py)/sc - 35;
   await fbPush('nodes',{text:txt.trim(),color,x,y,isRoot:true});
 }
-
+ 
 // ── RENDER NODES ──
 function renderAll(){
   const cv=document.getElementById('cv');
@@ -547,7 +547,7 @@ function renderAll(){
   Object.values(nodes).forEach(n=>renderNode(n));
   renderConns();
 }
-
+ 
 function renderNode(n){
   const cv=document.getElementById('cv');
   let el=cv.querySelector(`[data-id="${n.id}"]`);
@@ -557,29 +557,29 @@ function renderNode(n){
     el.dataset.id=n.id;
     el.innerHTML=`<div class="node-text"></div><button class="node-del">×</button>`;
     cv.appendChild(el);
-
+ 
     el.querySelector('.node-del').addEventListener('click',e=>{
       e.stopPropagation();
       if(confirm('Dzēst mezglu?')) deleteNode(n.id);
     });
-
+ 
     el.addEventListener('dblclick',e=>{ e.stopPropagation(); openEdit(n.id); });
     el.addEventListener('click',e=>{ e.stopPropagation(); if(mode==='conn') handleConn(n.id,el); });
-
+ 
     initDrag(el, n.id);
   }
   el.querySelector('.node-text').textContent=n.text;
   el.style.background=n.color||'#e8694a';
   posEl(el, n.x, n.y);
 }
-
+ 
 function posEl(el, nx, ny){
   el.style.left=(nx*sc+px)+'px';
   el.style.top=(ny*sc+py)+'px';
   el.style.transform=`scale(${sc})`;
   el.style.transformOrigin='top left';
 }
-
+ 
 async function deleteNode(id){
   await fbRemove(`mindmap/nodes/${id}`);
   // remove related connections
@@ -587,14 +587,14 @@ async function deleteNode(id){
     if(c.from===id||c.to===id) fbRemove(`mindmap/connections/${cid}`);
   });
 }
-
+ 
 // ── RENDER CONNECTIONS ──
 function renderConns(){
   const svg=document.getElementById('svg');
   // keep defs
   const defs=svg.querySelector('defs');
   svg.innerHTML=''; svg.appendChild(defs);
-
+ 
   Object.entries(conns).forEach(([cid,c])=>{
     const fn=nodes[c.from], tn=nodes[c.to];
     if(!fn||!tn) return;
@@ -613,11 +613,11 @@ function renderConns(){
     svg.appendChild(path);
   });
 }
-
+ 
 // ── DRAG ──
 function initDrag(el, id){
   let sx,sy,snx,sny,moved;
-
+ 
   // MOUSE
   el.addEventListener('mousedown', e=>{
     if(mode==='conn') return;
@@ -627,7 +627,7 @@ function initDrag(el, id){
     snx=nodes[id].x; sny=nodes[id].y;
     moved=false;
     el.classList.add('dragging');
-
+ 
     function mm(e2){
       const dx=(e2.clientX-sx)/sc;
       const dy=(e2.clientY-sy)/sc;
@@ -645,7 +645,7 @@ function initDrag(el, id){
     document.addEventListener('mousemove',mm);
     document.addEventListener('mouseup',mu);
   });
-
+ 
   // TOUCH
   el.addEventListener('touchstart', e=>{
     if(mode==='conn') return;
@@ -657,7 +657,7 @@ function initDrag(el, id){
     moved=false;
     el.classList.add('dragging');
   },{passive:true});
-
+ 
   el.addEventListener('touchmove', e=>{
     e.preventDefault(); e.stopPropagation();
     const t=e.touches[0];
@@ -668,14 +668,14 @@ function initDrag(el, id){
     posEl(el,nodes[id].x,nodes[id].y);
     renderConns();
   },{passive:false});
-
+ 
   el.addEventListener('touchend', e=>{
     e.stopPropagation();
     el.classList.remove('dragging');
     if(moved) fbUpdate(`mindmap/nodes/${id}`,{x:nodes[id].x,y:nodes[id].y});
   });
 }
-
+ 
 // ── CONNECT ──
 function handleConn(id,el){
   if(!connFrom){
@@ -696,10 +696,10 @@ function handleConn(id,el){
     hint('✅ Savienots! Klikšķini nākamo mezglu vai pārslēdzies uz ✋');
   }
 }
-
+ 
 // ── CANVAS INTERACTIONS ──
 const wrap=document.getElementById('wrap');
-
+ 
 // double-click on background → add node
 wrap.addEventListener('dblclick', e=>{
   if(e.target!==wrap && e.target!==document.getElementById('cv') && !e.target.closest('#svg')) return;
@@ -708,7 +708,7 @@ wrap.addEventListener('dblclick', e=>{
   const y=(e.clientY-rect.top-py)/sc;
   openAdd(x-75, y-30);
 });
-
+ 
 // pan with right-click or middle-click
 let panning=false, panSX, panSY;
 wrap.addEventListener('mousedown', e=>{
@@ -728,7 +728,7 @@ document.addEventListener('mouseup', e=>{
   if(panning){ panning=false; wrap.style.cursor=mode==='conn'?'crosshair':'default'; }
 });
 wrap.addEventListener('contextmenu',e=>e.preventDefault());
-
+ 
 // two-finger pan on touch
 let t1={x:0,y:0}, t1px=0, t1py=0, t1sc=1, pinchD0=0;
 wrap.addEventListener('touchstart', e=>{
@@ -751,7 +751,7 @@ wrap.addEventListener('touchmove', e=>{
     reposAll(); renderConns();
   }
 },{passive:false});
-
+ 
 // wheel zoom
 wrap.addEventListener('wheel', e=>{
   e.preventDefault();
@@ -762,7 +762,7 @@ wrap.addEventListener('wheel', e=>{
   sc=Math.min(Math.max(sc*f,0.2),3);
   reposAll(); renderConns();
 },{passive:false});
-
+ 
 function reposAll(){
   Object.values(nodes).forEach(n=>{
     const el=document.querySelector(`[data-id="${n.id}"]`);
@@ -770,7 +770,7 @@ function reposAll(){
   });
   renderConns();
 }
-
+ 
 function doZoom(f){
   const wrap=document.getElementById('wrap');
   const cx=wrap.clientWidth/2, cy=wrap.clientHeight/2;
@@ -779,12 +779,12 @@ function doZoom(f){
   reposAll();
 }
 function resetView(){ sc=1;px=0;py=0; reposAll(); }
-
+ 
 // ── CLEAR ──
 async function doClear(){
   if(confirm('Notīrīt visu domu karti?')) await fbSet('mindmap',null);
 }
-
+ 
 // ── HINT ──
 let htimer;
 function hint(txt){
@@ -794,7 +794,7 @@ function hint(txt){
   clearTimeout(htimer);
   htimer=setTimeout(()=>el.style.opacity='0.55',5000);
 }
-
+ 
 // ── KEYBOARD ──
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') closeModal();
