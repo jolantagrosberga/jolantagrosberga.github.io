@@ -129,7 +129,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);display:flex;flex-dire
 let mode='move', color='#e8694a', mcolor='#e8694a';
 let nodes={}, conns={}, editId=null, connFrom=null;
 let sc=1, px=0, py=0, fbOk=false;
- 
+
 document.addEventListener('firebase-ready',()=>{
   fbOk=true;
   document.getElementById('sd').className='ok';
@@ -138,12 +138,12 @@ document.addEventListener('firebase-ready',()=>{
   window._fb.onValue(window._refs.conns,s=>{conns=s.val()||{};renderConns();});
 });
 setTimeout(()=>{if(!fbOk){document.getElementById('sd').className='err';document.getElementById('stxt').textContent='Kļūda!';}},5000);
- 
+
 async function fbPush(k,d){if(!fbOk)return null;const r=await window._fb.push(window._refs[k],d);return r.key;}
 async function fbUpd(p,d){if(!fbOk)return;await window._fb.update(window._fb.ref(window._db,p),d);}
 async function fbRem(p){if(!fbOk)return;await window._fb.remove(window._fb.ref(window._db,p));}
 async function fbSet(p,v){if(!fbOk)return;await window._fb.set(window._fb.ref(window._db,p),v);}
- 
+
 function setMode(m){
   mode=m;
   document.getElementById('mm').classList.toggle('on',m==='move');
@@ -156,7 +156,7 @@ function setMode(m){
 function pickC(el){document.querySelectorAll('#cp .cd').forEach(d=>d.classList.remove('on'));el.classList.add('on');color=el.dataset.c;mcolor=color;syncMC();}
 function pickMC(el){document.querySelectorAll('#mc .mcd').forEach(d=>d.classList.remove('on'));el.classList.add('on');mcolor=el.dataset.c;}
 function syncMC(){document.querySelectorAll('#mc .mcd').forEach(d=>d.classList.toggle('on',d.dataset.c===mcolor));}
- 
+
 let pendPos=null;
 function openAdd(x,y){pendPos=(x!=null)?{x,y}:null;editId=null;document.getElementById('mt').textContent='Jauns mezgls';document.getElementById('mi').value='';mcolor=color;syncMC();document.getElementById('ov').classList.remove('hide');setTimeout(()=>document.getElementById('mi').focus(),80);}
 function openEdit(id){const n=nodes[id];if(!n)return;editId=id;document.getElementById('mt').textContent='Rediģēt';document.getElementById('mi').value=n.text;mcolor=n.color||'#e8694a';syncMC();document.getElementById('ov').classList.remove('hide');setTimeout(()=>document.getElementById('mi').focus(),80);}
@@ -178,7 +178,7 @@ async function addRoot(){
   const w=document.getElementById('wrap');
   await fbPush('nodes',{text:txt.trim(),color,x:(w.clientWidth/2-px)/sc-80,y:(w.clientHeight/2-py)/sc-35,isRoot:true});
 }
- 
+
 function renderAll(){
   const cv=document.getElementById('cv');
   [...cv.children].forEach(el=>{if(!nodes[el.dataset.id])el.remove();});
