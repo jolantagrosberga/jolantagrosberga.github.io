@@ -4,25 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Domu Karte</title>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyB_KlBl04dLKakEJkdtNn2dETGJKxcThfw",
-  authDomain: "mindmap-skolotajiem.firebaseapp.com",
-  databaseURL: "https://mindmap-skolotajiem-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mindmap-skolotajiem",
-  storageBucket: "mindmap-skolotajiem.firebasestorage.app",
-  messagingSenderId: "883861703069",
-  appId: "1:883861703069:web:506b783a28fa73d42d8774"
-};
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-window._db = db;
-window._refs = { nodes: ref(db,'mindmap/nodes'), conns: ref(db,'mindmap/connections') };
-window._fb = { ref, push, onValue, remove, update, set };
-document.dispatchEvent(new Event('firebase-ready'));
-</script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -40,9 +21,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);display:flex;flex-dire
 .mb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .cd{width:22px;height:22px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0}
 .cd:hover{transform:scale(1.2)}.cd.on{border-color:var(--ink);transform:scale(1.15)}
-#st{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--soft);white-space:nowrap}
-#sd{width:9px;height:9px;border-radius:50%;background:#ccc;transition:background .3s}
-#sd.ok{background:#48b56a}#sd.err{background:#e8694a}
 #wrap{flex:1;position:relative;overflow:hidden;background:var(--bg);background-image:radial-gradient(circle,#c5b9ad 1px,transparent 1px);background-size:26px 26px;touch-action:none}
 #svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
 #cv{position:absolute;inset:0;z-index:2}
@@ -72,6 +50,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);display:flex;flex-dire
 </style>
 </head>
 <body>
+
 <div id="tb">
   <h1>🧠 Domu Karte</h1>
   <div class="sep"></div>
@@ -92,13 +71,14 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);display:flex;flex-dire
     <div class="cd" style="background:#7a5230" data-c="#7a5230" onclick="pickC(this)"></div>
   </div>
   <div class="sep"></div>
-  <button class="btn bd" onclick="doClear()">🗑 Notīrīt</button>
-  <div id="st"><div id="sd"></div><span id="stxt">Savienojas...</span></div>
+  <button class="btn bd" onclick="doClear()">🗑 Notīrīt visu</button>
 </div>
+
 <div id="wrap">
   <svg id="svg"><defs></defs></svg>
   <div id="cv"></div>
 </div>
+
 <div id="ov" class="hide">
   <div id="mo">
     <h2 id="mt">Jauns mezgls</h2>
@@ -119,30 +99,23 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);display:flex;flex-dire
     </div>
   </div>
 </div>
+
 <div id="zc">
   <button class="zb" onclick="doZoom(1.15)">＋</button>
   <button class="zb" onclick="doZoom(0.87)">－</button>
   <button class="zb" onclick="resetView()">⌂</button>
 </div>
 <div id="hint">💡 Divkārt klikšķini uz fona → jauns mezgls &nbsp;|&nbsp; Velc mezglus</div>
+
 <script>
+// Visi dati tikai pārlūka atmiņā — aizvērojot logu viss pazūd
 let mode='move', color='#e8694a', mcolor='#e8694a';
 let nodes={}, conns={}, editId=null, connFrom=null;
-let sc=1, px=0, py=0, fbOk=false;
+let sc=1, px=0, py=0;
+let nodeCounter=0, connCounter=0;
 
-document.addEventListener('firebase-ready',()=>{
-  fbOk=true;
-  document.getElementById('sd').className='ok';
-  document.getElementById('stxt').textContent='Savienots';
-  window._fb.onValue(window._refs.nodes,s=>{nodes=s.val()||{};renderAll();});
-  window._fb.onValue(window._refs.conns,s=>{conns=s.val()||{};renderConns();});
-});
-setTimeout(()=>{if(!fbOk){document.getElementById('sd').className='err';document.getElementById('stxt').textContent='Kļūda!';}},5000);
-
-async function fbPush(k,d){if(!fbOk)return null;const r=await window._fb.push(window._refs[k],d);return r.key;}
-async function fbUpd(p,d){if(!fbOk)return;await window._fb.update(window._fb.ref(window._db,p),d);}
-async function fbRem(p){if(!fbOk)return;await window._fb.remove(window._fb.ref(window._db,p));}
-async function fbSet(p,v){if(!fbOk)return;await window._fb.set(window._fb.ref(window._db,p),v);}
+function newId(){ return 'n'+(++nodeCounter)+'_'+Date.now(); }
+function newCId(){ return 'c'+(++connCounter)+'_'+Date.now(); }
 
 function setMode(m){
   mode=m;
@@ -153,30 +126,54 @@ function setMode(m){
   document.getElementById('wrap').style.cursor=m==='conn'?'crosshair':'default';
   setHint(m==='conn'?'🔗 Klikšķini uz pirmā mezgla, tad uz otrā':'💡 Divkārt klikšķini uz fona → jauns mezgls  |  Velc mezglus');
 }
+
 function pickC(el){document.querySelectorAll('#cp .cd').forEach(d=>d.classList.remove('on'));el.classList.add('on');color=el.dataset.c;mcolor=color;syncMC();}
 function pickMC(el){document.querySelectorAll('#mc .mcd').forEach(d=>d.classList.remove('on'));el.classList.add('on');mcolor=el.dataset.c;}
 function syncMC(){document.querySelectorAll('#mc .mcd').forEach(d=>d.classList.toggle('on',d.dataset.c===mcolor));}
 
 let pendPos=null;
-function openAdd(x,y){pendPos=(x!=null)?{x,y}:null;editId=null;document.getElementById('mt').textContent='Jauns mezgls';document.getElementById('mi').value='';mcolor=color;syncMC();document.getElementById('ov').classList.remove('hide');setTimeout(()=>document.getElementById('mi').focus(),80);}
-function openEdit(id){const n=nodes[id];if(!n)return;editId=id;document.getElementById('mt').textContent='Rediģēt';document.getElementById('mi').value=n.text;mcolor=n.color||'#e8694a';syncMC();document.getElementById('ov').classList.remove('hide');setTimeout(()=>document.getElementById('mi').focus(),80);}
+function openAdd(x,y){
+  pendPos=(x!=null)?{x,y}:null;editId=null;
+  document.getElementById('mt').textContent='Jauns mezgls';
+  document.getElementById('mi').value='';
+  mcolor=color;syncMC();
+  document.getElementById('ov').classList.remove('hide');
+  setTimeout(()=>document.getElementById('mi').focus(),80);
+}
+function openEdit(id){
+  const n=nodes[id];if(!n)return;editId=id;
+  document.getElementById('mt').textContent='Rediģēt';
+  document.getElementById('mi').value=n.text;
+  mcolor=n.color||'#e8694a';syncMC();
+  document.getElementById('ov').classList.remove('hide');
+  setTimeout(()=>document.getElementById('mi').focus(),80);
+}
 function closeModal(){document.getElementById('ov').classList.add('hide');editId=null;pendPos=null;}
-async function saveNode(){
+
+function saveNode(){
   const txt=document.getElementById('mi').value.trim();
   if(!txt){document.getElementById('mi').focus();return;}
-  if(editId){await fbUpd('mindmap/nodes/'+editId,{text:txt,color:mcolor});}
-  else{
+  if(editId){
+    nodes[editId].text=txt;nodes[editId].color=mcolor;
+    renderAll();
+  } else {
     const w=document.getElementById('wrap');
     const cx=pendPos?pendPos.x:(w.clientWidth/2-px)/sc;
     const cy=pendPos?pendPos.y:(w.clientHeight/2-py)/sc;
-    await fbPush('nodes',{text:txt,color:mcolor,x:cx-75+(Math.random()-.5)*80,y:cy-30+(Math.random()-.5)*60,isRoot:false});
+    const id=newId();
+    nodes[id]={id,text:txt,color:mcolor,x:cx-75+(Math.random()-.5)*80,y:cy-30+(Math.random()-.5)*60,isRoot:false};
+    renderNode(nodes[id]);
+    renderConns();
   }
   closeModal();
 }
-async function addRoot(){
+
+function addRoot(){
   const txt=prompt('Centrālā mezgla teksts:','Galvenā tēma');if(!txt)return;
   const w=document.getElementById('wrap');
-  await fbPush('nodes',{text:txt.trim(),color,x:(w.clientWidth/2-px)/sc-80,y:(w.clientHeight/2-py)/sc-35,isRoot:true});
+  const id=newId();
+  nodes[id]={id,text:txt.trim(),color,x:(w.clientWidth/2-px)/sc-80,y:(w.clientHeight/2-py)/sc-35,isRoot:true};
+  renderNode(nodes[id]);renderConns();
 }
 
 function renderAll(){
@@ -185,6 +182,7 @@ function renderAll(){
   Object.values(nodes).forEach(n=>renderNode(n));
   renderConns();
 }
+
 function renderNode(n){
   const cv=document.getElementById('cv');
   let el=cv.querySelector('[data-id="'+n.id+'"]');
@@ -194,7 +192,7 @@ function renderNode(n){
     el.dataset.id=n.id;
     el.innerHTML='<div class="nt"></div><button class="ndel">×</button>';
     cv.appendChild(el);
-    el.querySelector('.ndel').addEventListener('click',e=>{e.stopPropagation();if(confirm('Dzēst?'))delNode(n.id);});
+    el.querySelector('.ndel').addEventListener('click',e=>{e.stopPropagation();delNode(n.id);});
     el.addEventListener('dblclick',e=>{e.stopPropagation();openEdit(n.id);});
     el.addEventListener('click',e=>{e.stopPropagation();if(mode==='conn')handleConn(n.id,el);});
     initDrag(el,n.id);
@@ -203,11 +201,20 @@ function renderNode(n){
   el.style.background=n.color||'#e8694a';
   posEl(el,n.x,n.y);
 }
-function posEl(el,nx,ny){el.style.left=(nx*sc+px)+'px';el.style.top=(ny*sc+py)+'px';el.style.transform='scale('+sc+')';el.style.transformOrigin='top left';}
-async function delNode(id){
-  await fbRem('mindmap/nodes/'+id);
-  Object.entries(conns).forEach(([cid,c])=>{if(c.from===id||c.to===id)fbRem('mindmap/connections/'+cid);});
+
+function posEl(el,nx,ny){
+  el.style.left=(nx*sc+px)+'px';
+  el.style.top=(ny*sc+py)+'px';
+  el.style.transform='scale('+sc+')';
+  el.style.transformOrigin='top left';
 }
+
+function delNode(id){
+  delete nodes[id];
+  Object.keys(conns).forEach(cid=>{if(conns[cid].from===id||conns[cid].to===id)delete conns[cid];});
+  renderAll();
+}
+
 function renderConns(){
   const svg=document.getElementById('svg');
   const defs=svg.querySelector('defs');
@@ -220,54 +227,91 @@ function renderConns(){
     p.setAttribute('stroke',fn.color||'#888');p.setAttribute('stroke-width',Math.max(2,3*sc));
     p.setAttribute('fill','none');p.setAttribute('opacity','0.75');p.setAttribute('stroke-linecap','round');
     p.style.cursor='pointer';
-    p.addEventListener('click',()=>{if(confirm('Dzēst savienojumu?'))fbRem('mindmap/connections/'+cid);});
+    p.addEventListener('click',()=>{delete conns[cid];renderConns();});
     svg.appendChild(p);
   });
 }
+
 function initDrag(el,id){
   let sx,sy,snx,sny,moved;
   el.addEventListener('mousedown',e=>{
     if(mode==='conn'||e.target.classList.contains('ndel'))return;
     e.preventDefault();e.stopPropagation();
     sx=e.clientX;sy=e.clientY;snx=nodes[id].x;sny=nodes[id].y;moved=false;el.classList.add('drag');
-    function mm(e2){const dx=(e2.clientX-sx)/sc,dy=(e2.clientY-sy)/sc;if(Math.abs(dx)>3||Math.abs(dy)>3)moved=true;nodes[id]={...nodes[id],x:snx+dx,y:sny+dy};posEl(el,nodes[id].x,nodes[id].y);renderConns();}
-    function mu(){document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);el.classList.remove('drag');if(moved)fbUpd('mindmap/nodes/'+id,{x:nodes[id].x,y:nodes[id].y});}
+    function mm(e2){
+      const dx=(e2.clientX-sx)/sc,dy=(e2.clientY-sy)/sc;
+      if(Math.abs(dx)>3||Math.abs(dy)>3)moved=true;
+      nodes[id].x=snx+dx;nodes[id].y=sny+dy;
+      posEl(el,nodes[id].x,nodes[id].y);renderConns();
+    }
+    function mu(){document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);el.classList.remove('drag');}
     document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);
   });
-  el.addEventListener('touchstart',e=>{if(mode==='conn'||e.target.classList.contains('ndel'))return;e.stopPropagation();const t=e.touches[0];sx=t.clientX;sy=t.clientY;snx=nodes[id].x;sny=nodes[id].y;moved=false;el.classList.add('drag');},{passive:true});
-  el.addEventListener('touchmove',e=>{e.preventDefault();e.stopPropagation();const t=e.touches[0],dx=(t.clientX-sx)/sc,dy=(t.clientY-sy)/sc;moved=true;nodes[id]={...nodes[id],x:snx+dx,y:sny+dy};posEl(el,nodes[id].x,nodes[id].y);renderConns();},{passive:false});
-  el.addEventListener('touchend',e=>{e.stopPropagation();el.classList.remove('drag');if(moved)fbUpd('mindmap/nodes/'+id,{x:nodes[id].x,y:nodes[id].y});});
+  el.addEventListener('touchstart',e=>{
+    if(mode==='conn'||e.target.classList.contains('ndel'))return;
+    e.stopPropagation();
+    const t=e.touches[0];sx=t.clientX;sy=t.clientY;snx=nodes[id].x;sny=nodes[id].y;moved=false;el.classList.add('drag');
+  },{passive:true});
+  el.addEventListener('touchmove',e=>{
+    e.preventDefault();e.stopPropagation();
+    const t=e.touches[0],dx=(t.clientX-sx)/sc,dy=(t.clientY-sy)/sc;
+    moved=true;nodes[id].x=snx+dx;nodes[id].y=sny+dy;
+    posEl(el,nodes[id].x,nodes[id].y);renderConns();
+  },{passive:false});
+  el.addEventListener('touchend',e=>{e.stopPropagation();el.classList.remove('drag');});
 }
+
 function handleConn(id,el){
-  if(!connFrom){connFrom=id;document.querySelectorAll('.csrc').forEach(e=>e.classList.remove('csrc'));el.classList.add('csrc');setHint('🔗 Tagad klikšķini uz otrā mezgla');}
-  else if(connFrom===id){connFrom=null;el.classList.remove('csrc');setHint('🔗 Klikšķini uz pirmā mezgla');}
-  else{
-    const a=connFrom,b=id;connFrom=null;document.querySelectorAll('.csrc').forEach(e=>e.classList.remove('csrc'));
-    if(!Object.values(conns).some(c=>(c.from===a&&c.to===b)||(c.from===b&&c.to===a)))fbPush('conns',{from:a,to:b});
+  if(!connFrom){
+    connFrom=id;document.querySelectorAll('.csrc').forEach(e=>e.classList.remove('csrc'));
+    el.classList.add('csrc');setHint('🔗 Tagad klikšķini uz otrā mezgla');
+  } else if(connFrom===id){
+    connFrom=null;el.classList.remove('csrc');setHint('🔗 Klikšķini uz pirmā mezgla');
+  } else {
+    const a=connFrom,b=id;connFrom=null;
+    document.querySelectorAll('.csrc').forEach(e=>e.classList.remove('csrc'));
+    const dup=Object.values(conns).some(c=>(c.from===a&&c.to===b)||(c.from===b&&c.to===a));
+    if(!dup){const cid=newCId();conns[cid]={from:a,to:b};renderConns();}
     setHint('✅ Savienots!');
   }
 }
+
 const wrap=document.getElementById('wrap');
 wrap.addEventListener('dblclick',e=>{
   if(e.target!==wrap&&e.target!==document.getElementById('cv')&&!e.target.closest('#svg'))return;
-  const r=wrap.getBoundingClientRect();openAdd((e.clientX-r.left-px)/sc-75,(e.clientY-r.top-py)/sc-30);
+  const r=wrap.getBoundingClientRect();
+  openAdd((e.clientX-r.left-px)/sc-75,(e.clientY-r.top-py)/sc-30);
 });
+
 let panning=false,panSX,panSY;
-wrap.addEventListener('mousedown',e=>{if(e.button===1||e.button===2){panning=true;panSX=e.clientX-px;panSY=e.clientY-py;wrap.style.cursor='grabbing';e.preventDefault();}});
+wrap.addEventListener('mousedown',e=>{
+  if(e.button===1||e.button===2){panning=true;panSX=e.clientX-px;panSY=e.clientY-py;wrap.style.cursor='grabbing';e.preventDefault();}
+});
 wrap.addEventListener('mousemove',e=>{if(!panning)return;px=e.clientX-panSX;py=e.clientY-panSY;reposAll();});
 document.addEventListener('mouseup',()=>{if(panning){panning=false;wrap.style.cursor=mode==='conn'?'crosshair':'default';}});
 wrap.addEventListener('contextmenu',e=>e.preventDefault());
+
 wrap.addEventListener('wheel',e=>{
-  e.preventDefault();const f=e.deltaY<0?1.1:0.91;const r=wrap.getBoundingClientRect();
-  const mx=e.clientX-r.left,my=e.clientY-r.top;px=mx-(mx-px)*f;py=my-(my-py)*f;
+  e.preventDefault();const f=e.deltaY<0?1.1:0.91;
+  const r=wrap.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  px=mx-(mx-px)*f;py=my-(my-py)*f;
   sc=Math.min(Math.max(sc*f,0.2),3);reposAll();
 },{passive:false});
-function reposAll(){Object.values(nodes).forEach(n=>{const el=document.querySelector('[data-id="'+n.id+'"]');if(el)posEl(el,n.x,n.y);});renderConns();}
-function doZoom(f){const w=document.getElementById('wrap');const cx=w.clientWidth/2,cy=w.clientHeight/2;px=cx-(cx-px)*f;py=cy-(cy-py)*f;sc=Math.min(Math.max(sc*f,0.2),3);reposAll();}
+
+function reposAll(){
+  Object.values(nodes).forEach(n=>{const el=document.querySelector('[data-id="'+n.id+'"]');if(el)posEl(el,n.x,n.y);});
+  renderConns();
+}
+function doZoom(f){const w=document.getElementById('wrap'),cx=w.clientWidth/2,cy=w.clientHeight/2;px=cx-(cx-px)*f;py=cy-(cy-py)*f;sc=Math.min(Math.max(sc*f,0.2),3);reposAll();}
 function resetView(){sc=1;px=0;py=0;reposAll();}
-async function doClear(){if(confirm('Notīrīt visu domu karti?'))await fbSet('mindmap',null);}
-let ht;function setHint(t){const el=document.getElementById('hint');el.textContent=t;el.style.opacity='1';clearTimeout(ht);ht=setTimeout(()=>el.style.opacity='0.55',5000);}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&!document.getElementById('ov').classList.contains('hide'))saveNode();});
+function doClear(){if(confirm('Notīrīt visu?')){nodes={};conns={};document.getElementById('cv').innerHTML='';renderConns();}}
+
+let ht;
+function setHint(t){const el=document.getElementById('hint');el.textContent=t;el.style.opacity='1';clearTimeout(ht);ht=setTimeout(()=>el.style.opacity='0.55',5000);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+  if(e.key==='Enter'&&!document.getElementById('ov').classList.contains('hide'))saveNode();
+});
 </script>
 </body>
 </html>
