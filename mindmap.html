@@ -4,802 +4,270 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Domu Karte</title>
- 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
- 
-  const firebaseConfig = {
-    apiKey: "AIzaSyB_KlBl04dLKakEJkdtNn2dETGJKxcThfw",
-    authDomain: "mindmap-skolotajiem.firebaseapp.com",
-    databaseURL: "https://mindmap-skolotajiem-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "mindmap-skolotajiem",
-    storageBucket: "mindmap-skolotajiem.firebasestorage.app",
-    messagingSenderId: "883861703069",
-    appId: "1:883861703069:web:506b783a28fa73d42d8774"
-  };
- 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
- 
-  window._db = db;
-  window._refs = {
-    nodes: ref(db, 'mindmap/nodes'),
-    conns: ref(db, 'mindmap/connections')
-  };
-  window._fb = { ref, push, onValue, remove, update, set };
-  document.dispatchEvent(new Event('firebase-ready'));
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyB_KlBl04dLKakEJkdtNn2dETGJKxcThfw",
+  authDomain: "mindmap-skolotajiem.firebaseapp.com",
+  databaseURL: "https://mindmap-skolotajiem-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mindmap-skolotajiem",
+  storageBucket: "mindmap-skolotajiem.firebasestorage.app",
+  messagingSenderId: "883861703069",
+  appId: "1:883861703069:web:506b783a28fa73d42d8774"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+window._db = db;
+window._refs = { nodes: ref(db,'mindmap/nodes'), conns: ref(db,'mindmap/connections') };
+window._fb = { ref, push, onValue, remove, update, set };
+document.dispatchEvent(new Event('firebase-ready'));
 </script>
- 
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
- 
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
-:root {
-  --bg: #f5f0e8;
-  --ink: #1c1814;
-  --soft: #7a6d62;
-  --border: #ddd5c8;
-  --panel: #fff;
-  --shadow: rgba(0,0,0,0.13);
-  --r: #e8694a;
-  --b: #4a90d9;
-  --g: #48b56a;
-  --y: #f0a500;
-  --p: #9b59b6;
-  --m: #e91e8c;
-  --t: #1a8a7a;
-  --br: #7a5230;
-}
- 
-html, body { width: 100%; height: 100%; overflow: hidden; }
- 
-body {
-  font-family: 'Nunito', sans-serif;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  user-select: none;
-}
- 
-/* ── TOOLBAR ── */
-#tb {
-  background: var(--panel);
-  border-bottom: 2px solid var(--border);
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  box-shadow: 0 2px 10px var(--shadow);
-  z-index: 100;
-}
- 
-#tb h1 {
-  font-family: 'Caveat', cursive;
-  font-size: 24px;
-  color: var(--r);
-  white-space: nowrap;
-}
- 
-.sep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
- 
-.btn {
-  padding: 6px 13px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 13px;
-  transition: all .15s;
-  white-space: nowrap;
-}
-.btn-p  { background: var(--r); color: #fff; border-color: var(--r); }
-.btn-p:hover { filter: brightness(1.1); }
-.btn-g  { background: transparent; color: var(--soft); border-color: var(--border); }
-.btn-g:hover { background: var(--bg); }
-.btn-d  { background: transparent; color: #c0392b; border-color: #c0392b; }
-.btn-d:hover { background: #c0392b; color: #fff; }
- 
-.mode-btn {
-  padding: 6px 11px;
-  border-radius: 8px;
-  border: 2px solid var(--border);
-  background: transparent;
-  cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 13px;
-  color: var(--soft);
-  transition: all .15s;
-}
-.mode-btn.on { background: var(--ink); color: #fff; border-color: var(--ink); }
- 
-.cdot {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: all .15s;
-  flex-shrink: 0;
-}
-.cdot:hover { transform: scale(1.2); }
-.cdot.on { border-color: var(--ink); transform: scale(1.15); }
- 
-#st {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--soft);
-  white-space: nowrap;
-}
-#sdot {
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  background: #ccc;
-  transition: background .3s;
-}
-#sdot.ok { background: var(--g); }
-#sdot.err { background: var(--r); }
- 
-/* ── CANVAS ── */
-#wrap {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  background: var(--bg);
-  background-image: radial-gradient(circle, #c5b9ad 1px, transparent 1px);
-  background-size: 26px 26px;
-  touch-action: none;
-}
- 
-#svg {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
- 
-#cv {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-}
- 
-/* ── NODES ── */
-.node {
-  position: absolute;
-  border-radius: 14px;
-  padding: 10px 16px;
-  min-width: 90px;
-  max-width: 190px;
-  text-align: center;
-  word-break: break-word;
-  cursor: grab;
-  z-index: 10;
-  box-shadow: 0 4px 18px var(--shadow);
-  border: 3px solid rgba(255,255,255,0.45);
-  transition: box-shadow .15s;
-  touch-action: none;
-}
-.node:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.2); }
-.node.dragging { cursor: grabbing; z-index: 50; box-shadow: 0 14px 40px rgba(0,0,0,0.25); }
-.node.root { border-radius: 22px; padding: 13px 20px; min-width: 120px; }
- 
-.node-text {
-  font-family: 'Caveat', cursive;
-  font-size: 19px;
-  font-weight: 700;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  pointer-events: none;
-  line-height: 1.25;
-}
-.node.root .node-text { font-size: 23px; }
- 
-.node-del {
-  position: absolute;
-  top: -10px; right: -10px;
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: #c0392b;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 900;
-  line-height: 22px;
-  text-align: center;
-  display: none;
-  z-index: 20;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-.node:hover .node-del { display: block; }
- 
-.conn-src { outline: 3px solid var(--b); outline-offset: 3px; }
- 
-/* ── MODAL ── */
-#overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(20,16,14,.55);
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-}
-#overlay.hide { display: none; }
- 
-#modal {
-  background: var(--panel);
-  border-radius: 20px;
-  padding: 28px;
-  width: 360px;
-  max-width: 92vw;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.22);
-}
-#modal h2 {
-  font-family: 'Caveat', cursive;
-  font-size: 26px;
-  margin-bottom: 16px;
-  color: var(--ink);
-}
-#minput {
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 10px;
-  border: 2px solid var(--border);
-  font-family: 'Caveat', cursive;
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--bg);
-  margin-bottom: 14px;
-  outline: none;
-}
-#minput:focus { border-color: var(--r); }
- 
-#mcolors { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 18px; }
-.mcdot {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: all .15s;
-}
-.mcdot.on { border-color: var(--ink); transform: scale(1.12); }
- 
-#mbtns { display: flex; gap: 8px; justify-content: flex-end; }
- 
-/* ── ZOOM ── */
-#zc {
-  position: fixed;
-  bottom: 14px; right: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 200;
-}
-.zbtn {
-  width: 36px; height: 36px;
-  border-radius: 9px;
-  border: 2px solid var(--border);
-  background: var(--panel);
-  cursor: pointer;
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--soft);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 8px var(--shadow);
-  transition: all .15s;
-}
-.zbtn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
- 
-/* ── HINT ── */
-#hint {
-  position: fixed;
-  bottom: 14px; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(28,24,20,.82);
-  color: #fff;
-  padding: 7px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 700;
-  z-index: 150;
-  white-space: nowrap;
-  pointer-events: none;
-  transition: opacity .3s;
-}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f5f0e8;--ink:#1c1814;--soft:#7a6d62;--border:#ddd5c8;--panel:#fff;--sh:rgba(0,0,0,0.13)}
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:'Nunito',sans-serif;background:var(--bg);display:flex;flex-direction:column;height:100vh;user-select:none}
+#tb{background:var(--panel);border-bottom:2px solid var(--border);padding:6px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;box-shadow:0 2px 10px var(--sh);z-index:100}
+#tb h1{font-family:'Caveat',cursive;font-size:24px;color:#e8694a;white-space:nowrap}
+.sep{width:1px;height:28px;background:var(--border);flex-shrink:0}
+.btn{padding:6px 13px;border-radius:8px;border:2px solid transparent;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;transition:all .15s;white-space:nowrap}
+.bp{background:#e8694a;color:#fff;border-color:#e8694a}.bp:hover{filter:brightness(1.1)}
+.bg{background:transparent;color:var(--soft);border-color:var(--border)}.bg:hover{background:var(--bg)}
+.bd{background:transparent;color:#c0392b;border-color:#c0392b}.bd:hover{background:#c0392b;color:#fff}
+.mb{padding:6px 11px;border-radius:8px;border:2px solid var(--border);background:transparent;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--soft);transition:all .15s}
+.mb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.cd{width:22px;height:22px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0}
+.cd:hover{transform:scale(1.2)}.cd.on{border-color:var(--ink);transform:scale(1.15)}
+#st{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--soft);white-space:nowrap}
+#sd{width:9px;height:9px;border-radius:50%;background:#ccc;transition:background .3s}
+#sd.ok{background:#48b56a}#sd.err{background:#e8694a}
+#wrap{flex:1;position:relative;overflow:hidden;background:var(--bg);background-image:radial-gradient(circle,#c5b9ad 1px,transparent 1px);background-size:26px 26px;touch-action:none}
+#svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+#cv{position:absolute;inset:0;z-index:2}
+.node{position:absolute;border-radius:14px;padding:10px 16px;min-width:90px;max-width:190px;text-align:center;word-break:break-word;cursor:grab;z-index:10;box-shadow:0 4px 18px var(--sh);border:3px solid rgba(255,255,255,0.45);transition:box-shadow .15s;touch-action:none}
+.node:hover{box-shadow:0 8px 28px rgba(0,0,0,0.2)}
+.node.drag{cursor:grabbing;z-index:50;box-shadow:0 14px 40px rgba(0,0,0,0.25)}
+.node.root{border-radius:22px;padding:13px 20px;min-width:120px}
+.nt{font-family:'Caveat',cursive;font-size:19px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.3);pointer-events:none;line-height:1.25}
+.node.root .nt{font-size:23px}
+.ndel{position:absolute;top:-10px;right:-10px;width:22px;height:22px;border-radius:50%;background:#c0392b;color:#fff;border:none;cursor:pointer;font-size:15px;font-weight:900;line-height:22px;text-align:center;display:none;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,0.3)}
+.node:hover .ndel{display:block}
+.csrc{outline:3px solid #4a90d9;outline-offset:3px}
+#ov{position:fixed;inset:0;background:rgba(20,16,14,.55);z-index:300;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#ov.hide{display:none}
+#mo{background:var(--panel);border-radius:20px;padding:28px;width:360px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,0.22)}
+#mo h2{font-family:'Caveat',cursive;font-size:26px;margin-bottom:16px;color:var(--ink)}
+#mi{width:100%;padding:11px 14px;border-radius:10px;border:2px solid var(--border);font-family:'Caveat',cursive;font-size:22px;font-weight:600;color:var(--ink);background:var(--bg);margin-bottom:14px;outline:none}
+#mi:focus{border-color:#e8694a}
+#mc{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+.mcd{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s}
+.mcd.on{border-color:var(--ink);transform:scale(1.12)}
+#mb{display:flex;gap:8px;justify-content:flex-end}
+#zc{position:fixed;bottom:14px;right:14px;display:flex;flex-direction:column;gap:4px;z-index:200}
+.zb{width:36px;height:36px;border-radius:9px;border:2px solid var(--border);background:var(--panel);cursor:pointer;font-size:18px;font-weight:900;color:var(--soft);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--sh);transition:all .15s}
+.zb:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+#hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(28,24,20,.82);color:#fff;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:700;z-index:150;white-space:nowrap;pointer-events:none;transition:opacity .3s}
 </style>
 </head>
 <body>
- 
-<!-- TOOLBAR -->
 <div id="tb">
   <h1>🧠 Domu Karte</h1>
   <div class="sep"></div>
- 
-  <button class="mode-btn on" id="m-move" onclick="setMode('move')">✋ Pārvietot</button>
-  <button class="mode-btn" id="m-conn" onclick="setMode('conn')">🔗 Savienot</button>
- 
+  <button class="mb on" id="mm" onclick="setMode('move')">✋ Pārvietot</button>
+  <button class="mb" id="mc2" onclick="setMode('conn')">🔗 Savienot</button>
   <div class="sep"></div>
- 
-  <button class="btn btn-p" onclick="openAdd()">＋ Pievienot</button>
-  <button class="btn btn-g" onclick="addRoot()">⭐ Centrāls</button>
- 
+  <button class="btn bp" onclick="openAdd()">＋ Pievienot</button>
+  <button class="btn bg" onclick="addRoot()">⭐ Centrāls</button>
   <div class="sep"></div>
- 
-  <div style="display:flex;gap:5px;align-items:center;" id="cp">
-    <div class="cdot on" style="background:var(--r)" data-c="var(--r)" onclick="pickColor(this)"></div>
-    <div class="cdot" style="background:var(--b)" data-c="var(--b)" onclick="pickColor(this)"></div>
-    <div class="cdot" style="background:var(--g)" data-c="var(--g)" onclick="pickColor(this)"></div>
-    <div class="cdot" style="background:var(--y)" data-c="var(--y)" onclick="pickColor(this)"></div>
-    <div class="cdot" style="background:var(--p)" data-c="var(--p)" onclick="pickColor(this)"></div>
-    <div class="cdot" style="background:var(--m)" data-c="var(--m)" onclick="pickColor(this)"></div>
-    <div class="cdot" style="background:var(--t)" data-c="var(--t)" onclick="pickColor(this)"></div>
-    <div class="cdot" style="background:var(--br)" data-c="var(--br)" onclick="pickColor(this)"></div>
+  <div style="display:flex;gap:5px;align-items:center" id="cp">
+    <div class="cd on" style="background:#e8694a" data-c="#e8694a" onclick="pickC(this)"></div>
+    <div class="cd" style="background:#4a90d9" data-c="#4a90d9" onclick="pickC(this)"></div>
+    <div class="cd" style="background:#48b56a" data-c="#48b56a" onclick="pickC(this)"></div>
+    <div class="cd" style="background:#f0a500" data-c="#f0a500" onclick="pickC(this)"></div>
+    <div class="cd" style="background:#9b59b6" data-c="#9b59b6" onclick="pickC(this)"></div>
+    <div class="cd" style="background:#e91e8c" data-c="#e91e8c" onclick="pickC(this)"></div>
+    <div class="cd" style="background:#1a8a7a" data-c="#1a8a7a" onclick="pickC(this)"></div>
+    <div class="cd" style="background:#7a5230" data-c="#7a5230" onclick="pickC(this)"></div>
   </div>
- 
   <div class="sep"></div>
-  <button class="btn btn-d" onclick="doClear()">🗑 Notīrīt</button>
- 
-  <div id="st">
-    <div id="sdot"></div>
-    <span id="stxt">Savienojas...</span>
-  </div>
+  <button class="btn bd" onclick="doClear()">🗑 Notīrīt</button>
+  <div id="st"><div id="sd"></div><span id="stxt">Savienojas...</span></div>
 </div>
- 
-<!-- CANVAS -->
 <div id="wrap">
-  <svg id="svg">
-    <defs>
-      <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-        <path d="M0,0 L0,6 L8,3 z" fill="#888" opacity="0.6"/>
-      </marker>
-    </defs>
-  </svg>
+  <svg id="svg"><defs></defs></svg>
   <div id="cv"></div>
 </div>
- 
-<!-- MODAL -->
-<div id="overlay" class="hide">
-  <div id="modal">
-    <h2 id="mtitle">Jauns mezgls</h2>
-    <input type="text" id="minput" placeholder="Ievadi tekstu..." maxlength="80" autocomplete="off">
-    <div id="mcolors">
-      <div class="mcdot on" style="background:var(--r)" data-c="var(--r)" onclick="pickMC(this)"></div>
-      <div class="mcdot" style="background:var(--b)" data-c="var(--b)" onclick="pickMC(this)"></div>
-      <div class="mcdot" style="background:var(--g)" data-c="var(--g)" onclick="pickMC(this)"></div>
-      <div class="mcdot" style="background:var(--y)" data-c="var(--y)" onclick="pickMC(this)"></div>
-      <div class="mcdot" style="background:var(--p)" data-c="var(--p)" onclick="pickMC(this)"></div>
-      <div class="mcdot" style="background:var(--m)" data-c="var(--m)" onclick="pickMC(this)"></div>
-      <div class="mcdot" style="background:var(--t)" data-c="var(--t)" onclick="pickMC(this)"></div>
-      <div class="mcdot" style="background:var(--br)" data-c="var(--br)" onclick="pickMC(this)"></div>
+<div id="ov" class="hide">
+  <div id="mo">
+    <h2 id="mt">Jauns mezgls</h2>
+    <input type="text" id="mi" placeholder="Ievadi tekstu..." maxlength="80" autocomplete="off">
+    <div id="mc">
+      <div class="mcd on" style="background:#e8694a" data-c="#e8694a" onclick="pickMC(this)"></div>
+      <div class="mcd" style="background:#4a90d9" data-c="#4a90d9" onclick="pickMC(this)"></div>
+      <div class="mcd" style="background:#48b56a" data-c="#48b56a" onclick="pickMC(this)"></div>
+      <div class="mcd" style="background:#f0a500" data-c="#f0a500" onclick="pickMC(this)"></div>
+      <div class="mcd" style="background:#9b59b6" data-c="#9b59b6" onclick="pickMC(this)"></div>
+      <div class="mcd" style="background:#e91e8c" data-c="#e91e8c" onclick="pickMC(this)"></div>
+      <div class="mcd" style="background:#1a8a7a" data-c="#1a8a7a" onclick="pickMC(this)"></div>
+      <div class="mcd" style="background:#7a5230" data-c="#7a5230" onclick="pickMC(this)"></div>
     </div>
-    <div id="mbtns">
-      <button class="btn btn-g" onclick="closeModal()">Atcelt</button>
-      <button class="btn btn-p" onclick="saveNode()">Saglabāt</button>
+    <div id="mb">
+      <button class="btn bg" onclick="closeModal()">Atcelt</button>
+      <button class="btn bp" onclick="saveNode()">Saglabāt</button>
     </div>
   </div>
 </div>
- 
-<!-- ZOOM -->
 <div id="zc">
-  <button class="zbtn" onclick="doZoom(1.15)">＋</button>
-  <button class="zbtn" onclick="doZoom(0.87)">－</button>
-  <button class="zbtn" onclick="resetView()" title="Atjaunot">⌂</button>
+  <button class="zb" onclick="doZoom(1.15)">＋</button>
+  <button class="zb" onclick="doZoom(0.87)">－</button>
+  <button class="zb" onclick="resetView()">⌂</button>
 </div>
- 
-<div id="hint">💡 Divkārt klikšķini uz fona → jauns mezgls &nbsp;|&nbsp; Velc mezglus &nbsp;|&nbsp; 🔗 Savienot → klikšķini divus mezglus</div>
- 
+<div id="hint">💡 Divkārt klikšķini uz fona → jauns mezgls &nbsp;|&nbsp; Velc mezglus</div>
 <script>
-// ── STATE ──
-let mode = 'move';
-let color = '#e8694a';   // resolved color
-let mcolor = '#e8694a';
-let nodes = {};
-let conns = {};
-let editId = null;
-let connFrom = null;
-let sc = 1, px = 0, py = 0;
-let fbOk = false;
+let mode='move', color='#e8694a', mcolor='#e8694a';
+let nodes={}, conns={}, editId=null, connFrom=null;
+let sc=1, px=0, py=0, fbOk=false;
  
-// Resolve CSS var to hex on first use
-const COLORS = {
-  'var(--r)':'#e8694a','var(--b)':'#4a90d9','var(--g)':'#48b56a',
-  'var(--y)':'#f0a500','var(--p)':'#9b59b6','var(--m)':'#e91e8c',
-  'var(--t)':'#1a8a7a','var(--br)':'#7a5230'
-};
-function res(c){ return COLORS[c] || c; }
- 
-// ── FIREBASE ──
-document.addEventListener('firebase-ready', () => {
-  fbOk = true;
-  setStatus('ok','Savienots');
-  const { onValue } = window._fb;
-  onValue(window._refs.nodes, snap => { nodes = snap.val()||{}; renderAll(); });
-  onValue(window._refs.conns, snap => { conns = snap.val()||{}; renderConns(); });
+document.addEventListener('firebase-ready',()=>{
+  fbOk=true;
+  document.getElementById('sd').className='ok';
+  document.getElementById('stxt').textContent='Savienots';
+  window._fb.onValue(window._refs.nodes,s=>{nodes=s.val()||{};renderAll();});
+  window._fb.onValue(window._refs.conns,s=>{conns=s.val()||{};renderConns();});
 });
-setTimeout(()=>{ if(!fbOk) setStatus('err','Kļūda — pārbaudi Firebase!'); },5000);
+setTimeout(()=>{if(!fbOk){document.getElementById('sd').className='err';document.getElementById('stxt').textContent='Kļūda!';}},5000);
  
-function setStatus(s,t){
-  document.getElementById('sdot').className=s;
-  document.getElementById('stxt').textContent=t;
-}
+async function fbPush(k,d){if(!fbOk)return null;const r=await window._fb.push(window._refs[k],d);return r.key;}
+async function fbUpd(p,d){if(!fbOk)return;await window._fb.update(window._fb.ref(window._db,p),d);}
+async function fbRem(p){if(!fbOk)return;await window._fb.remove(window._fb.ref(window._db,p));}
+async function fbSet(p,v){if(!fbOk)return;await window._fb.set(window._fb.ref(window._db,p),v);}
  
-async function fbPush(refKey, data){
-  if(!fbOk) return null;
-  const r = await window._fb.push(window._refs[refKey], data);
-  return r.key;
-}
-async function fbUpdate(path, data){
-  if(!fbOk) return;
-  const r = window._fb.ref(window._db, path);
-  await window._fb.update(r, data);
-}
-async function fbRemove(path){
-  if(!fbOk) return;
-  const r = window._fb.ref(window._db, path);
-  await window._fb.remove(r);
-}
-async function fbSet(path, val){
-  if(!fbOk) return;
-  const r = window._fb.ref(window._db, path);
-  await window._fb.set(r, val);
-}
- 
-// ── MODE ──
 function setMode(m){
   mode=m;
-  document.getElementById('m-move').classList.toggle('on', m==='move');
-  document.getElementById('m-conn').classList.toggle('on', m==='conn');
+  document.getElementById('mm').classList.toggle('on',m==='move');
+  document.getElementById('mc2').classList.toggle('on',m==='conn');
   connFrom=null;
-  document.querySelectorAll('.conn-src').forEach(e=>e.classList.remove('conn-src'));
-  const wrap=document.getElementById('wrap');
-  wrap.style.cursor = m==='conn' ? 'crosshair' : 'default';
-  hint(m==='conn'
-    ? '🔗 Klikšķini uz pirmā mezgla, tad uz otrā, lai savienotu'
-    : '💡 Divkārt klikšķini uz fona → jauns mezgls  |  Velc mezglus');
+  document.querySelectorAll('.csrc').forEach(e=>e.classList.remove('csrc'));
+  document.getElementById('wrap').style.cursor=m==='conn'?'crosshair':'default';
+  setHint(m==='conn'?'🔗 Klikšķini uz pirmā mezgla, tad uz otrā':'💡 Divkārt klikšķini uz fona → jauns mezgls  |  Velc mezglus');
 }
+function pickC(el){document.querySelectorAll('#cp .cd').forEach(d=>d.classList.remove('on'));el.classList.add('on');color=el.dataset.c;mcolor=color;syncMC();}
+function pickMC(el){document.querySelectorAll('#mc .mcd').forEach(d=>d.classList.remove('on'));el.classList.add('on');mcolor=el.dataset.c;}
+function syncMC(){document.querySelectorAll('#mc .mcd').forEach(d=>d.classList.toggle('on',d.dataset.c===mcolor));}
  
-// ── COLOR ──
-function pickColor(el){
-  document.querySelectorAll('#cp .cdot').forEach(d=>d.classList.remove('on'));
-  el.classList.add('on');
-  color=res(el.dataset.c);
-  mcolor=color;
-  syncMColors();
-}
-function pickMC(el){
-  document.querySelectorAll('#mcolors .mcdot').forEach(d=>d.classList.remove('on'));
-  el.classList.add('on');
-  mcolor=res(el.dataset.c);
-}
-function syncMColors(){
-  document.querySelectorAll('#mcolors .mcdot').forEach(d=>{
-    d.classList.toggle('on', res(d.dataset.c)===mcolor);
-  });
-}
- 
-// ── MODAL ──
 let pendPos=null;
-function openAdd(x,y){
-  pendPos=(x!=null)?{x,y}:null;
-  editId=null;
-  document.getElementById('mtitle').textContent='Jauns mezgls';
-  document.getElementById('minput').value='';
-  mcolor=color; syncMColors();
-  document.getElementById('overlay').classList.remove('hide');
-  setTimeout(()=>document.getElementById('minput').focus(),80);
-}
-function openEdit(id){
-  const n=nodes[id]; if(!n) return;
-  editId=id;
-  document.getElementById('mtitle').textContent='Rediģēt';
-  document.getElementById('minput').value=n.text;
-  mcolor=n.color||'#e8694a'; syncMColors();
-  document.getElementById('overlay').classList.remove('hide');
-  setTimeout(()=>document.getElementById('minput').focus(),80);
-}
-function closeModal(){
-  document.getElementById('overlay').classList.add('hide');
-  editId=null; pendPos=null;
-}
+function openAdd(x,y){pendPos=(x!=null)?{x,y}:null;editId=null;document.getElementById('mt').textContent='Jauns mezgls';document.getElementById('mi').value='';mcolor=color;syncMC();document.getElementById('ov').classList.remove('hide');setTimeout(()=>document.getElementById('mi').focus(),80);}
+function openEdit(id){const n=nodes[id];if(!n)return;editId=id;document.getElementById('mt').textContent='Rediģēt';document.getElementById('mi').value=n.text;mcolor=n.color||'#e8694a';syncMC();document.getElementById('ov').classList.remove('hide');setTimeout(()=>document.getElementById('mi').focus(),80);}
+function closeModal(){document.getElementById('ov').classList.add('hide');editId=null;pendPos=null;}
 async function saveNode(){
-  const txt=document.getElementById('minput').value.trim();
-  if(!txt){ document.getElementById('minput').focus(); return; }
-  if(editId){
-    await fbUpdate(`mindmap/nodes/${editId}`,{text:txt,color:mcolor});
-  } else {
-    const wrap=document.getElementById('wrap');
-    const cx=pendPos ? pendPos.x : (wrap.clientWidth/2-px)/sc;
-    const cy=pendPos ? pendPos.y : (wrap.clientHeight/2-py)/sc;
-    const x=cx-75+(Math.random()-.5)*80;
-    const y=cy-30+(Math.random()-.5)*60;
-    await fbPush('nodes',{text:txt,color:mcolor,x,y,isRoot:false});
+  const txt=document.getElementById('mi').value.trim();
+  if(!txt){document.getElementById('mi').focus();return;}
+  if(editId){await fbUpd('mindmap/nodes/'+editId,{text:txt,color:mcolor});}
+  else{
+    const w=document.getElementById('wrap');
+    const cx=pendPos?pendPos.x:(w.clientWidth/2-px)/sc;
+    const cy=pendPos?pendPos.y:(w.clientHeight/2-py)/sc;
+    await fbPush('nodes',{text:txt,color:mcolor,x:cx-75+(Math.random()-.5)*80,y:cy-30+(Math.random()-.5)*60,isRoot:false});
   }
   closeModal();
 }
 async function addRoot(){
-  const txt=prompt('Centrālā mezgla teksts:','Galvenā tēma');
-  if(!txt) return;
-  const wrap=document.getElementById('wrap');
-  const x=(wrap.clientWidth/2-px)/sc - 80;
-  const y=(wrap.clientHeight/2-py)/sc - 35;
-  await fbPush('nodes',{text:txt.trim(),color,x,y,isRoot:true});
+  const txt=prompt('Centrālā mezgla teksts:','Galvenā tēma');if(!txt)return;
+  const w=document.getElementById('wrap');
+  await fbPush('nodes',{text:txt.trim(),color,x:(w.clientWidth/2-px)/sc-80,y:(w.clientHeight/2-py)/sc-35,isRoot:true});
 }
  
-// ── RENDER NODES ──
 function renderAll(){
   const cv=document.getElementById('cv');
-  // remove deleted
-  [...cv.children].forEach(el=>{ if(!nodes[el.dataset.id]) el.remove(); });
+  [...cv.children].forEach(el=>{if(!nodes[el.dataset.id])el.remove();});
   Object.values(nodes).forEach(n=>renderNode(n));
   renderConns();
 }
- 
 function renderNode(n){
   const cv=document.getElementById('cv');
-  let el=cv.querySelector(`[data-id="${n.id}"]`);
+  let el=cv.querySelector('[data-id="'+n.id+'"]');
   if(!el){
     el=document.createElement('div');
     el.className='node'+(n.isRoot?' root':'');
     el.dataset.id=n.id;
-    el.innerHTML=`<div class="node-text"></div><button class="node-del">×</button>`;
+    el.innerHTML='<div class="nt"></div><button class="ndel">×</button>';
     cv.appendChild(el);
- 
-    el.querySelector('.node-del').addEventListener('click',e=>{
-      e.stopPropagation();
-      if(confirm('Dzēst mezglu?')) deleteNode(n.id);
-    });
- 
-    el.addEventListener('dblclick',e=>{ e.stopPropagation(); openEdit(n.id); });
-    el.addEventListener('click',e=>{ e.stopPropagation(); if(mode==='conn') handleConn(n.id,el); });
- 
-    initDrag(el, n.id);
+    el.querySelector('.ndel').addEventListener('click',e=>{e.stopPropagation();if(confirm('Dzēst?'))delNode(n.id);});
+    el.addEventListener('dblclick',e=>{e.stopPropagation();openEdit(n.id);});
+    el.addEventListener('click',e=>{e.stopPropagation();if(mode==='conn')handleConn(n.id,el);});
+    initDrag(el,n.id);
   }
-  el.querySelector('.node-text').textContent=n.text;
+  el.querySelector('.nt').textContent=n.text;
   el.style.background=n.color||'#e8694a';
-  posEl(el, n.x, n.y);
+  posEl(el,n.x,n.y);
 }
- 
-function posEl(el, nx, ny){
-  el.style.left=(nx*sc+px)+'px';
-  el.style.top=(ny*sc+py)+'px';
-  el.style.transform=`scale(${sc})`;
-  el.style.transformOrigin='top left';
+function posEl(el,nx,ny){el.style.left=(nx*sc+px)+'px';el.style.top=(ny*sc+py)+'px';el.style.transform='scale('+sc+')';el.style.transformOrigin='top left';}
+async function delNode(id){
+  await fbRem('mindmap/nodes/'+id);
+  Object.entries(conns).forEach(([cid,c])=>{if(c.from===id||c.to===id)fbRem('mindmap/connections/'+cid);});
 }
- 
-async function deleteNode(id){
-  await fbRemove(`mindmap/nodes/${id}`);
-  // remove related connections
-  Object.entries(conns).forEach(([cid,c])=>{
-    if(c.from===id||c.to===id) fbRemove(`mindmap/connections/${cid}`);
-  });
-}
- 
-// ── RENDER CONNECTIONS ──
 function renderConns(){
   const svg=document.getElementById('svg');
-  // keep defs
   const defs=svg.querySelector('defs');
-  svg.innerHTML=''; svg.appendChild(defs);
- 
+  svg.innerHTML='';svg.appendChild(defs);
   Object.entries(conns).forEach(([cid,c])=>{
-    const fn=nodes[c.from], tn=nodes[c.to];
-    if(!fn||!tn) return;
-    const x1=fn.x*sc+px+75*sc, y1=fn.y*sc+py+30*sc;
-    const x2=tn.x*sc+px+75*sc, y2=tn.y*sc+py+30*sc;
-    const dx=x2-x1;
-    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d',`M${x1},${y1} C${x1+dx*.5},${y1} ${x2-dx*.5},${y2} ${x2},${y2}`);
-    path.setAttribute('stroke', fn.color||'#888');
-    path.setAttribute('stroke-width', Math.max(2,3*sc));
-    path.setAttribute('fill','none');
-    path.setAttribute('opacity','0.75');
-    path.setAttribute('stroke-linecap','round');
-    path.style.cursor='pointer';
-    path.addEventListener('click',()=>{ if(confirm('Dzēst savienojumu?')) fbRemove(`mindmap/connections/${cid}`); });
-    svg.appendChild(path);
+    const fn=nodes[c.from],tn=nodes[c.to];if(!fn||!tn)return;
+    const x1=fn.x*sc+px+75*sc,y1=fn.y*sc+py+30*sc,x2=tn.x*sc+px+75*sc,y2=tn.y*sc+py+30*sc,dx=x2-x1;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d','M'+x1+','+y1+' C'+(x1+dx*.5)+','+y1+' '+(x2-dx*.5)+','+y2+' '+x2+','+y2);
+    p.setAttribute('stroke',fn.color||'#888');p.setAttribute('stroke-width',Math.max(2,3*sc));
+    p.setAttribute('fill','none');p.setAttribute('opacity','0.75');p.setAttribute('stroke-linecap','round');
+    p.style.cursor='pointer';
+    p.addEventListener('click',()=>{if(confirm('Dzēst savienojumu?'))fbRem('mindmap/connections/'+cid);});
+    svg.appendChild(p);
   });
 }
- 
-// ── DRAG ──
-function initDrag(el, id){
+function initDrag(el,id){
   let sx,sy,snx,sny,moved;
- 
-  // MOUSE
-  el.addEventListener('mousedown', e=>{
-    if(mode==='conn') return;
-    if(e.target.classList.contains('node-del')) return;
-    e.preventDefault(); e.stopPropagation();
-    sx=e.clientX; sy=e.clientY;
-    snx=nodes[id].x; sny=nodes[id].y;
-    moved=false;
-    el.classList.add('dragging');
- 
-    function mm(e2){
-      const dx=(e2.clientX-sx)/sc;
-      const dy=(e2.clientY-sy)/sc;
-      if(Math.abs(dx)>3||Math.abs(dy)>3) moved=true;
-      nodes[id]={...nodes[id],x:snx+dx,y:sny+dy};
-      posEl(el,nodes[id].x,nodes[id].y);
-      renderConns();
-    }
-    function mu(){
-      document.removeEventListener('mousemove',mm);
-      document.removeEventListener('mouseup',mu);
-      el.classList.remove('dragging');
-      if(moved) fbUpdate(`mindmap/nodes/${id}`,{x:nodes[id].x,y:nodes[id].y});
-    }
-    document.addEventListener('mousemove',mm);
-    document.addEventListener('mouseup',mu);
+  el.addEventListener('mousedown',e=>{
+    if(mode==='conn'||e.target.classList.contains('ndel'))return;
+    e.preventDefault();e.stopPropagation();
+    sx=e.clientX;sy=e.clientY;snx=nodes[id].x;sny=nodes[id].y;moved=false;el.classList.add('drag');
+    function mm(e2){const dx=(e2.clientX-sx)/sc,dy=(e2.clientY-sy)/sc;if(Math.abs(dx)>3||Math.abs(dy)>3)moved=true;nodes[id]={...nodes[id],x:snx+dx,y:sny+dy};posEl(el,nodes[id].x,nodes[id].y);renderConns();}
+    function mu(){document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu);el.classList.remove('drag');if(moved)fbUpd('mindmap/nodes/'+id,{x:nodes[id].x,y:nodes[id].y});}
+    document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);
   });
- 
-  // TOUCH
-  el.addEventListener('touchstart', e=>{
-    if(mode==='conn') return;
-    if(e.target.classList.contains('node-del')) return;
-    e.stopPropagation();
-    const t=e.touches[0];
-    sx=t.clientX; sy=t.clientY;
-    snx=nodes[id].x; sny=nodes[id].y;
-    moved=false;
-    el.classList.add('dragging');
-  },{passive:true});
- 
-  el.addEventListener('touchmove', e=>{
-    e.preventDefault(); e.stopPropagation();
-    const t=e.touches[0];
-    const dx=(t.clientX-sx)/sc;
-    const dy=(t.clientY-sy)/sc;
-    moved=true;
-    nodes[id]={...nodes[id],x:snx+dx,y:sny+dy};
-    posEl(el,nodes[id].x,nodes[id].y);
-    renderConns();
-  },{passive:false});
- 
-  el.addEventListener('touchend', e=>{
-    e.stopPropagation();
-    el.classList.remove('dragging');
-    if(moved) fbUpdate(`mindmap/nodes/${id}`,{x:nodes[id].x,y:nodes[id].y});
-  });
+  el.addEventListener('touchstart',e=>{if(mode==='conn'||e.target.classList.contains('ndel'))return;e.stopPropagation();const t=e.touches[0];sx=t.clientX;sy=t.clientY;snx=nodes[id].x;sny=nodes[id].y;moved=false;el.classList.add('drag');},{passive:true});
+  el.addEventListener('touchmove',e=>{e.preventDefault();e.stopPropagation();const t=e.touches[0],dx=(t.clientX-sx)/sc,dy=(t.clientY-sy)/sc;moved=true;nodes[id]={...nodes[id],x:snx+dx,y:sny+dy};posEl(el,nodes[id].x,nodes[id].y);renderConns();},{passive:false});
+  el.addEventListener('touchend',e=>{e.stopPropagation();el.classList.remove('drag');if(moved)fbUpd('mindmap/nodes/'+id,{x:nodes[id].x,y:nodes[id].y});});
 }
- 
-// ── CONNECT ──
 function handleConn(id,el){
-  if(!connFrom){
-    connFrom=id;
-    document.querySelectorAll('.conn-src').forEach(e=>e.classList.remove('conn-src'));
-    el.classList.add('conn-src');
-    hint('🔗 Tagad klikšķini uz otrā mezgla');
-  } else if(connFrom===id){
-    connFrom=null;
-    el.classList.remove('conn-src');
-    hint('🔗 Klikšķini uz pirmā mezgla');
-  } else {
-    const a=connFrom, b=id;
-    connFrom=null;
-    document.querySelectorAll('.conn-src').forEach(e=>e.classList.remove('conn-src'));
-    const dup=Object.values(conns).some(c=>(c.from===a&&c.to===b)||(c.from===b&&c.to===a));
-    if(!dup) fbPush('conns',{from:a,to:b});
-    hint('✅ Savienots! Klikšķini nākamo mezglu vai pārslēdzies uz ✋');
+  if(!connFrom){connFrom=id;document.querySelectorAll('.csrc').forEach(e=>e.classList.remove('csrc'));el.classList.add('csrc');setHint('🔗 Tagad klikšķini uz otrā mezgla');}
+  else if(connFrom===id){connFrom=null;el.classList.remove('csrc');setHint('🔗 Klikšķini uz pirmā mezgla');}
+  else{
+    const a=connFrom,b=id;connFrom=null;document.querySelectorAll('.csrc').forEach(e=>e.classList.remove('csrc'));
+    if(!Object.values(conns).some(c=>(c.from===a&&c.to===b)||(c.from===b&&c.to===a)))fbPush('conns',{from:a,to:b});
+    setHint('✅ Savienots!');
   }
 }
- 
-// ── CANVAS INTERACTIONS ──
 const wrap=document.getElementById('wrap');
- 
-// double-click on background → add node
-wrap.addEventListener('dblclick', e=>{
-  if(e.target!==wrap && e.target!==document.getElementById('cv') && !e.target.closest('#svg')) return;
-  const rect=wrap.getBoundingClientRect();
-  const x=(e.clientX-rect.left-px)/sc;
-  const y=(e.clientY-rect.top-py)/sc;
-  openAdd(x-75, y-30);
+wrap.addEventListener('dblclick',e=>{
+  if(e.target!==wrap&&e.target!==document.getElementById('cv')&&!e.target.closest('#svg'))return;
+  const r=wrap.getBoundingClientRect();openAdd((e.clientX-r.left-px)/sc-75,(e.clientY-r.top-py)/sc-30);
 });
- 
-// pan with right-click or middle-click
-let panning=false, panSX, panSY;
-wrap.addEventListener('mousedown', e=>{
-  if(e.button===1||e.button===2){
-    panning=true;
-    panSX=e.clientX-px; panSY=e.clientY-py;
-    wrap.style.cursor='grabbing';
-    e.preventDefault();
-  }
-});
-wrap.addEventListener('mousemove', e=>{
-  if(!panning) return;
-  px=e.clientX-panSX; py=e.clientY-panSY;
-  reposAll();
-});
-document.addEventListener('mouseup', e=>{
-  if(panning){ panning=false; wrap.style.cursor=mode==='conn'?'crosshair':'default'; }
-});
+let panning=false,panSX,panSY;
+wrap.addEventListener('mousedown',e=>{if(e.button===1||e.button===2){panning=true;panSX=e.clientX-px;panSY=e.clientY-py;wrap.style.cursor='grabbing';e.preventDefault();}});
+wrap.addEventListener('mousemove',e=>{if(!panning)return;px=e.clientX-panSX;py=e.clientY-panSY;reposAll();});
+document.addEventListener('mouseup',()=>{if(panning){panning=false;wrap.style.cursor=mode==='conn'?'crosshair':'default';}});
 wrap.addEventListener('contextmenu',e=>e.preventDefault());
- 
-// two-finger pan on touch
-let t1={x:0,y:0}, t1px=0, t1py=0, t1sc=1, pinchD0=0;
-wrap.addEventListener('touchstart', e=>{
-  if(e.touches.length===2){
-    t1={x:(e.touches[0].clientX+e.touches[1].clientX)/2, y:(e.touches[0].clientY+e.touches[1].clientY)/2};
-    t1px=px; t1py=py; t1sc=sc;
-    pinchD0=Math.hypot(e.touches[1].clientX-e.touches[0].clientX, e.touches[1].clientY-e.touches[0].clientY);
-  }
-},{passive:true});
-wrap.addEventListener('touchmove', e=>{
-  if(e.touches.length===2){
-    e.preventDefault();
-    const mx=(e.touches[0].clientX+e.touches[1].clientX)/2;
-    const my=(e.touches[0].clientY+e.touches[1].clientY)/2;
-    const d=Math.hypot(e.touches[1].clientX-e.touches[0].clientX,e.touches[1].clientY-e.touches[0].clientY);
-    const f=d/pinchD0;
-    sc=Math.min(Math.max(t1sc*f,0.2),3);
-    px=mx-(t1.x-t1px)*f - (mx-t1.x)*0; // simplified pan+zoom
-    px=t1px+(mx-t1.x); py=t1py+(my-t1.y);
-    reposAll(); renderConns();
-  }
+wrap.addEventListener('wheel',e=>{
+  e.preventDefault();const f=e.deltaY<0?1.1:0.91;const r=wrap.getBoundingClientRect();
+  const mx=e.clientX-r.left,my=e.clientY-r.top;px=mx-(mx-px)*f;py=my-(my-py)*f;
+  sc=Math.min(Math.max(sc*f,0.2),3);reposAll();
 },{passive:false});
- 
-// wheel zoom
-wrap.addEventListener('wheel', e=>{
-  e.preventDefault();
-  const f=e.deltaY<0?1.1:0.91;
-  const rect=wrap.getBoundingClientRect();
-  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-  px=mx-(mx-px)*f; py=my-(my-py)*f;
-  sc=Math.min(Math.max(sc*f,0.2),3);
-  reposAll(); renderConns();
-},{passive:false});
- 
-function reposAll(){
-  Object.values(nodes).forEach(n=>{
-    const el=document.querySelector(`[data-id="${n.id}"]`);
-    if(el) posEl(el,n.x,n.y);
-  });
-  renderConns();
-}
- 
-function doZoom(f){
-  const wrap=document.getElementById('wrap');
-  const cx=wrap.clientWidth/2, cy=wrap.clientHeight/2;
-  px=cx-(cx-px)*f; py=cy-(cy-py)*f;
-  sc=Math.min(Math.max(sc*f,0.2),3);
-  reposAll();
-}
-function resetView(){ sc=1;px=0;py=0; reposAll(); }
- 
-// ── CLEAR ──
-async function doClear(){
-  if(confirm('Notīrīt visu domu karti?')) await fbSet('mindmap',null);
-}
- 
-// ── HINT ──
-let htimer;
-function hint(txt){
-  const el=document.getElementById('hint');
-  el.textContent=txt;
-  el.style.opacity='1';
-  clearTimeout(htimer);
-  htimer=setTimeout(()=>el.style.opacity='0.55',5000);
-}
- 
-// ── KEYBOARD ──
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') closeModal();
-  if(e.key==='Enter' && !document.getElementById('overlay').classList.contains('hide')) saveNode();
-});
+function reposAll(){Object.values(nodes).forEach(n=>{const el=document.querySelector('[data-id="'+n.id+'"]');if(el)posEl(el,n.x,n.y);});renderConns();}
+function doZoom(f){const w=document.getElementById('wrap');const cx=w.clientWidth/2,cy=w.clientHeight/2;px=cx-(cx-px)*f;py=cy-(cy-py)*f;sc=Math.min(Math.max(sc*f,0.2),3);reposAll();}
+function resetView(){sc=1;px=0;py=0;reposAll();}
+async function doClear(){if(confirm('Notīrīt visu domu karti?'))await fbSet('mindmap',null);}
+let ht;function setHint(t){const el=document.getElementById('hint');el.textContent=t;el.style.opacity='1';clearTimeout(ht);ht=setTimeout(()=>el.style.opacity='0.55',5000);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&!document.getElementById('ov').classList.contains('hide'))saveNode();});
 </script>
 </body>
 </html>
