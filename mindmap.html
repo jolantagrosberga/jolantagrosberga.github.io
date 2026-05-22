@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Domu Karte — Klases Dēlis</title>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ======= FIREBASE KONFIGURĀCIJA =======
+  const firebaseConfig = {
+    apiKey: "AIzaSyB_KlBl04dLKakEJkdtNn2dETGJKxcThfw",
+    authDomain: "mindmap-skolotajiem.firebaseapp.com",
+    databaseURL: "https://mindmap-skolotajiem-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "mindmap-skolotajiem",
+    storageBucket: "mindmap-skolotajiem.firebasestorage.app",
+    messagingSenderId: "883861703069",
+    appId: "1:883861703069:web:506b783a28fa73d42d8774"
+  };
+  // ======================================
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const nodesRef = ref(db, 'mindmap/nodes');
+  const connectionsRef = ref(db, 'mindmap/connections');
+
+  window._firebaseReady = true;
+  window._db = db;
+  window._nodesRef = nodesRef;
+  window._connectionsRef = connectionsRef;
+  window._fbFns = { ref, push, onValue, remove, update, set };
+
+  document.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f0ebe3;
+    --canvas-bg: #faf7f2;
+    --ink: #1a1614;
+    --soft: #6b5e52;
+    --accent1: #e8694a;
+    --accent2: #4a90d9;
+    --accent3: #5cb85c;
+    --accent4: #f0a500;
+    --accent5: #9b59b6;
+    --accent6: #e91e8c;
+    --panel: #ffffff;
+    --border: #d4c9bc;
+    --shadow: rgba(26,22,20,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOOLBAR */
+  #toolbar {
+    background: var(--panel);
+    border-bottom: 2px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    z-index: 100;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  #toolbar h1 {
+    font-family: 'Caveat', cursive;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--accent1);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .sep { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+
+  .tool-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .tool-group label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--accent1);
+    color: #fff;
+    border-color: var(--accent1);
+  }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--soft);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg); color: var(--ink); }
+
+  .btn-danger {
+    background: transparent;
+    color: #c0392b;
+    border-color: #c0392b;
+  }
+  .btn-danger:hover { background: #c0392b; color: #fff; }
+
+  .color-picker-row {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .color-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .color-dot:hover { transform: scale(1.2); }
+  .color-dot.active { border-color: var(--ink); transform: scale(1.15); }
+
+  .mode-btn {
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--soft);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .mode-btn.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  #status {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--soft);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  #status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ccc;
+  }
+  #status-dot.connected { background: var(--accent3); }
+  #status-dot.error { background: var(--accent1); }
+
+  /* CANVAS AREA */
+  #canvas-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: var(--canvas-bg);
+    background-image:
+      radial-gradient(circle, #c9bfb4 1px, transparent 1px);
+    background-size: 28px 28px;
+    cursor: default;
+  }
+
+  #canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0; left: 0;
+  }
+
+  /* SVG connections layer */
+  #svg-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* NODE */
+  .node {
+    position: absolute;
+    border-radius: 16px;
+    padding: 10px 16px;
+    cursor: grab;
+    user-select: none;
+    z-index: 10;
+    min-width: 100px;
+    max-width: 200px;
+    text-align: center;
+    box-shadow: 0 4px 16px var(--shadow);
+    border: 3px solid rgba(255,255,255,0.5);
+    transition: box-shadow 0.15s, transform 0.1s;
+    word-break: break-word;
+  }
+  .node:hover { box-shadow: 0 8px 28px var(--shadow); }
+  .node.dragging { cursor: grabbing; transform: scale(1.05); z-index: 50; box-shadow: 0 12px 40px rgba(0,0,0,0.2); }
+  .node.selected { outline: 3px dashed rgba(0,0,0,0.4); outline-offset: 3px; }
+  .node.connecting-source { outline: 3px solid var(--accent2); outline-offset: 3px; }
+
+  .node-text {
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    pointer-events: none;
+  }
+
+  .node-root {
+    border-radius: 24px;
+    padding: 14px 22px;
+    min-width: 130px;
+  }
+  .node-root .node-text { font-size: 22px; }
+
+  .node-delete {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 20px;
+    text-align: center;
+    display: none;
+    z-index: 20;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  .node:hover .node-delete,
+  .node.selected .node-delete { display: block; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,22,20,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.hidden { display: none; }
+
+  .modal {
+    background: var(--panel);
+    border-radius: 20px;
+    padding: 32px;
+    width: 380px;
+    max-width: 90vw;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    position: relative;
+  }
+
+  .modal h2 {
+    font-family: 'Caveat', cursive;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 20px;
+  }
+
+  .modal input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--bg);
+    margin-bottom: 16px;
+    outline: none;
+    transition: border 0.15s;
+  }
+  .modal input:focus { border-color: var(--accent1); }
+
+  .modal-colors {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .modal-color-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .modal-color-dot.active { border-color: var(--ink); transform: scale(1.1); }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* INSTRUCTIONS */
+  #instructions {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(26,22,20,0.8);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 50;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  /* ZOOM controls */
+  #zoom-controls {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 100;
+  }
+  .zoom-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--panel);
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .zoom-btn:hover { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  /* Connection line in progress */
+  #conn-line {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    background: var(--ink);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 300;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <h1>🧠 Domu Karte</h1>
+  <div class="sep"></div>
+
+  <div class="tool-group">
+    <button class="mode-btn active" id="mode-move" onclick="setMode('move')" title="Pārvietot mezglus">✋ Pārvietot</button>
+    <button class="mode-btn" id="mode-connect" onclick="setMode('connect')" title="Savienot mezglus ar līnijām">🔗 Savienot</button>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="tool-group">
+    <button class="btn btn-primary" onclick="openAddModal()">＋ Pievienot mezglu</button>
+    <button class="btn btn-ghost" onclick="addCenterNode()">⭐ Centrāls mezgls</button>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="tool-group">
+    <label>Krāsa:</label>
+    <div class="color-picker-row" id="color-picker">
+      <div class="color-dot active" style="background:#e8694a" data-color="#e8694a" onclick="selectColor(this)"></div>
+      <div class="color-dot" style="background:#4a90d9" data-color="#4a90d9" onclick="selectColor(this)"></div>
+      <div class="color-dot" style="background:#5cb85c" data-color="#5cb85c" onclick="selectColor(this)"></div>
+      <div class="color-dot" style="background:#f0a500" data-color="#f0a500" onclick="selectColor(this)"></div>
+      <div class="color-dot" style="background:#9b59b6" data-color="#9b59b6" onclick="selectColor(this)"></div>
+      <div class="color-dot" style="background:#e91e8c" data-color="#e91e8c" onclick="selectColor(this)"></div>
+      <div class="color-dot" style="background:#1a7a6e" data-color="#1a7a6e" onclick="selectColor(this)"></div>
+      <div class="color-dot" style="background:#6b4226" data-color="#6b4226" onclick="selectColor(this)"></div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="tool-group">
+    <button class="btn btn-danger" onclick="confirmClear()">🗑 Notīrīt visu</button>
+  </div>
+
+  <div id="status">
+    <div id="status-dot"></div>
+    <span id="status-text">Savienojas...</span>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div id="canvas-wrap">
+  <svg id="svg-layer"></svg>
+  <div id="canvas"></div>
+  <svg id="conn-line-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:6;">
+    <line id="conn-line" x1="0" y1="0" x2="0" y2="0" stroke="#4a90d9" stroke-width="3" stroke-dasharray="8,4" opacity="0"/>
+  </svg>
+</div>
+
+<!-- MODAL: pievienot/rediģēt mezglu -->
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">Jauns mezgls</h2>
+    <input type="text" id="modal-input" placeholder="Ievadi tekstu..." maxlength="80" autocomplete="off">
+    <div class="modal-colors" id="modal-colors">
+      <div class="modal-color-dot active" style="background:#e8694a" data-color="#e8694a" onclick="selectModalColor(this)"></div>
+      <div class="modal-color-dot" style="background:#4a90d9" data-color="#4a90d9" onclick="selectModalColor(this)"></div>
+      <div class="modal-color-dot" style="background:#5cb85c" data-color="#5cb85c" onclick="selectModalColor(this)"></div>
+      <div class="modal-color-dot" style="background:#f0a500" data-color="#f0a500" onclick="selectModalColor(this)"></div>
+      <div class="modal-color-dot" style="background:#9b59b6" data-color="#9b59b6" onclick="selectModalColor(this)"></div>
+      <div class="modal-color-dot" style="background:#e91e8c" data-color="#e91e8c" onclick="selectModalColor(this)"></div>
+      <div class="modal-color-dot" style="background:#1a7a6e" data-color="#1a7a6e" onclick="selectModalColor(this)"></div>
+      <div class="modal-color-dot" style="background:#6b4226" data-color="#6b4226" onclick="selectModalColor(this)"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Atcelt</button>
+      <button class="btn btn-primary" id="modal-save" onclick="saveNode()">Saglabāt</button>
+    </div>
+  </div>
+</div>
+
+<!-- ZOOM -->
+<div id="zoom-controls">
+  <button class="zoom-btn" onclick="zoom(1.15)" title="Tuvināt">＋</button>
+  <button class="zoom-btn" onclick="zoom(0.87)" title="Tālināt">－</button>
+  <button class="zoom-btn" onclick="resetView()" title="Atjaunot skatu">⌂</button>
+</div>
+
+<!-- INSTRUCTIONS -->
+<div id="instructions">💡 Divkārt klikšķini uz tāfeles, lai pievienotu mezglu • Velc mezglus • Savienot režīmā klikšķini divus mezglus</div>
+
+<div id="tooltip"></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let mode = 'move';
+let selectedColor = '#e8694a';
+let modalColor = '#e8694a';
+let nodes = {};       // id -> {id, text, color, x, y, isRoot}
+let connections = {}; // id -> {id, from, to}
+let editingNodeId = null;
+let connectingFrom = null;
+let scale = 1;
+let panX = 0, panY = 0;
+let isPanning = false;
+let panStart = {x:0,y:0};
+let firebaseReady = false;
+
+// ============================================================
+// FIREBASE INIT
+// ============================================================
+document.addEventListener('firebase-ready', () => {
+  firebaseReady = true;
+  setStatus('connected', 'Savienots');
+
+  const { onValue } = window._fbFns;
+
+  onValue(window._nodesRef, (snap) => {
+    nodes = snap.val() || {};
+    renderAll();
+  });
+
+  onValue(window._connectionsRef, (snap) => {
+    connections = snap.val() || {};
+    renderConnections();
+  });
+});
+
+setTimeout(() => {
+  if (!firebaseReady) setStatus('error', 'Konfigurē Firebase!');
+}, 4000);
+
+function setStatus(state, text) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  dot.className = state;
+  txt.textContent = text;
+}
+
+// ============================================================
+// FIREBASE OPS
+// ============================================================
+async function fbAddNode(data) {
+  if (!firebaseReady) return localAddNode(data);
+  const { push } = window._fbFns;
+  const ref = await push(window._nodesRef, data);
+  return ref.key;
+}
+
+async function fbUpdateNode(id, data) {
+  if (!firebaseReady) return;
+  const { ref, update } = window._fbFns;
+  const nodeRef = ref(window._db, `mindmap/nodes/${id}`);
+  await update(nodeRef, data);
+}
+
+async function fbDeleteNode(id) {
+  if (!firebaseReady) return;
+  const { ref, remove } = window._fbFns;
+  await remove(ref(window._db, `mindmap/nodes/${id}`));
+  // Remove connections involving this node
+  Object.entries(connections).forEach(([cid, c]) => {
+    if (c.from === id || c.to === id) fbDeleteConnection(cid);
+  });
+}
+
+async function fbAddConnection(from, to) {
+  if (!firebaseReady) return;
+  // Check duplicate
+  const exists = Object.values(connections).some(c =>
+    (c.from === from && c.to === to) || (c.from === to && c.to === from)
+  );
+  if (exists) return;
+  const { push } = window._fbFns;
+  await push(window._connectionsRef, { from, to });
+}
+
+async function fbDeleteConnection(id) {
+  if (!firebaseReady) return;
+  const { ref, remove } = window._fbFns;
+  await remove(ref(window._db, `mindmap/connections/${id}`));
+}
+
+async function fbClearAll() {
+  if (!firebaseReady) return;
+  const { ref, set } = window._fbFns;
+  await set(ref(window._db, 'mindmap'), null);
+}
+
+// Local fallback (demo mode)
+function localAddNode(data) {
+  const id = 'n' + Date.now();
+  nodes[id] = { ...data, id };
+  renderAll();
+  return id;
+}
+
+// ============================================================
+// MODE & COLOR
+// ============================================================
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mode-' + m).classList.add('active');
+  connectingFrom = null;
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('connecting-source'));
+
+  const canvas = document.getElementById('canvas-wrap');
+  if (m === 'connect') {
+    canvas.style.cursor = 'crosshair';
+    showInstructions('🔗 Savienot: klikšķini uz pirmā mezgla, tad uz otrā');
+  } else {
+    canvas.style.cursor = 'default';
+    showInstructions('💡 Divkārt klikšķini uz tāfeles, lai pievienotu • Velc mezglus');
+  }
+}
+
+function selectColor(el) {
+  document.querySelectorAll('#color-picker .color-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  selectedColor = el.dataset.color;
+  modalColor = selectedColor;
+  syncModalColors();
+}
+
+function selectModalColor(el) {
+  document.querySelectorAll('#modal-colors .modal-color-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  modalColor = el.dataset.color;
+}
+
+function syncModalColors() {
+  document.querySelectorAll('#modal-colors .modal-color-dot').forEach(d => {
+    d.classList.toggle('active', d.dataset.color === modalColor);
+  });
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+let pendingPos = null;
+
+function openAddModal(x, y) {
+  pendingPos = (x !== undefined) ? {x, y} : null;
+  editingNodeId = null;
+  document.getElementById('modal-title').textContent = 'Jauns mezgls';
+  document.getElementById('modal-input').value = '';
+  document.getElementById('modal-save').textContent = 'Pievienot';
+  modalColor = selectedColor;
+  syncModalColors();
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('modal-input').focus(), 80);
+}
+
+function openEditModal(id) {
+  const n = nodes[id];
+  if (!n) return;
+  editingNodeId = id;
+  document.getElementById('modal-title').textContent = 'Rediģēt mezglu';
+  document.getElementById('modal-input').value = n.text;
+  document.getElementById('modal-save').textContent = 'Saglabāt';
+  modalColor = n.color || '#e8694a';
+  syncModalColors();
+  document.getElementById('modal-overlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('modal-input').focus(), 80);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+  editingNodeId = null;
+  pendingPos = null;
+}
+
+async function saveNode() {
+  const text = document.getElementById('modal-input').value.trim();
+  if (!text) { document.getElementById('modal-input').focus(); return; }
+
+  if (editingNodeId) {
+    await fbUpdateNode(editingNodeId, { text, color: modalColor });
+  } else {
+    const wrap = document.getElementById('canvas-wrap');
+    const cx = pendingPos ? pendingPos.x : (wrap.clientWidth / 2 - panX) / scale;
+    const cy = pendingPos ? pendingPos.y : (wrap.clientHeight / 2 - panY) / scale;
+    const x = cx - 75 + (Math.random()-0.5)*60;
+    const y = cy - 30 + (Math.random()-0.5)*60;
+    await fbAddNode({ text, color: modalColor, x, y, isRoot: false });
+  }
+  closeModal();
+}
+
+// Enter key in modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && !document.getElementById('modal-overlay').classList.contains('hidden')) saveNode();
+});
+
+// ============================================================
+// ADD CENTER NODE (root)
+// ============================================================
+async function addCenterNode() {
+  const wrap = document.getElementById('canvas-wrap');
+  const cx = (wrap.clientWidth / 2 - panX) / scale;
+  const cy = (wrap.clientHeight / 2 - panY) / scale;
+  const text = prompt('Centrālā mezgla teksts:', 'Galvenā tēma');
+  if (!text) return;
+  await fbAddNode({ text: text.trim(), color: selectedColor, x: cx - 80, y: cy - 35, isRoot: true });
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderAll() {
+  const canvas = document.getElementById('canvas');
+  // Remove nodes not in state
+  Array.from(canvas.children).forEach(el => {
+    if (!nodes[el.dataset.id]) el.remove();
+  });
+  // Add/update nodes
+  Object.values(nodes).forEach(n => renderNode(n));
+  renderConnections();
+}
+
+function renderNode(n) {
+  const canvas = document.getElementById('canvas');
+  let el = canvas.querySelector(`[data-id="${n.id}"]`);
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'node' + (n.isRoot ? ' node-root' : '');
+    el.dataset.id = n.id;
+    el.innerHTML = `<div class="node-text"></div><button class="node-delete" title="Dzēst">×</button>`;
+    canvas.appendChild(el);
+
+    // Delete button
+    el.querySelector('.node-delete').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm('Dzēst šo mezglu?')) fbDeleteNode(n.id);
+    });
+
+    // Double-click to edit
+    el.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      openEditModal(n.id);
+    });
+
+    // Click for connect mode
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (mode === 'connect') handleConnectClick(n.id, el);
+    });
+
+    makeDraggable(el, n.id);
+  }
+
+  el.querySelector('.node-text').textContent = n.text;
+  el.style.background = n.color || '#e8694a';
+  el.style.left = (n.x * scale + panX) + 'px';
+  el.style.top = (n.y * scale + panY) + 'px';
+  el.style.transform = `scale(${scale})`;
+  el.style.transformOrigin = 'top left';
+}
+
+function renderConnections() {
+  const svg = document.getElementById('svg-layer');
+  svg.innerHTML = '';
+
+  Object.values(connections).forEach(c => {
+    const fromNode = nodes[c.from];
+    const toNode = nodes[c.to];
+    if (!fromNode || !toNode) return;
+
+    const x1 = fromNode.x * scale + panX + 75 * scale;
+    const y1 = fromNode.y * scale + panY + 30 * scale;
+    const x2 = toNode.x * scale + panX + 75 * scale;
+    const y2 = toNode.y * scale + panY + 30 * scale;
+
+    const dx = x2 - x1, dy = y2 - y1;
+    const cx1 = x1 + dx * 0.5, cy1 = y1;
+    const cx2 = x1 + dx * 0.5, cy2 = y2;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`);
+    path.setAttribute('stroke', fromNode.color || '#888');
+    path.setAttribute('stroke-width', Math.max(2, 3 * scale));
+    path.setAttribute('fill', 'none');
+    path.setAttribute('opacity', '0.7');
+    path.setAttribute('stroke-linecap', 'round');
+    path.style.cursor = 'pointer';
+    path.title = 'Klikšķini, lai dzēstu savienojumu';
+    path.addEventListener('click', () => { if (confirm('Dzēst savienojumu?')) fbDeleteConnection(c.id); });
+    svg.appendChild(path);
+  });
+}
+
+// ============================================================
+// CONNECT MODE
+// ============================================================
+function handleConnectClick(id, el) {
+  if (!connectingFrom) {
+    connectingFrom = id;
+    document.querySelectorAll('.node').forEach(n => n.classList.remove('connecting-source'));
+    el.classList.add('connecting-source');
+    showInstructions('🔗 Klikšķini uz otrā mezgla, lai savienotu');
+  } else if (connectingFrom === id) {
+    connectingFrom = null;
+    el.classList.remove('connecting-source');
+    showInstructions('🔗 Savienot: klikšķini uz pirmā mezgla, tad uz otrā');
+  } else {
+    fbAddConnection(connectingFrom, id);
+    document.querySelectorAll('.node').forEach(n => n.classList.remove('connecting-source'));
+    connectingFrom = null;
+    showInstructions('✅ Savienots! Klikšķini uz nākamā mezgla');
+  }
+}
+
+// ============================================================
+// DRAG NODES
+// ============================================================
+function makeDraggable(el, id) {
+  let startX, startY, startNodeX, startNodeY, moved;
+
+  el.addEventListener('mousedown', (e) => {
+    if (mode === 'connect') return;
+    if (e.target.classList.contains('node-delete')) return;
+    e.preventDefault();
+    moved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    const n = nodes[id];
+    startNodeX = n.x;
+    startNodeY = n.y;
+    el.classList.add('dragging');
+
+    const onMove = (e2) => {
+      const dx = (e2.clientX - startX) / scale;
+      const dy = (e2.clientY - startY) / scale;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      const newX = startNodeX + dx;
+      const newY = startNodeY + dy;
+      el.style.left = (newX * scale + panX) + 'px';
+      el.style.top = (newY * scale + panY) + 'px';
+      // Update local for connection rendering
+      nodes[id] = { ...nodes[id], x: newX, y: newY };
+      renderConnections();
+    };
+
+    const onUp = async (e2) => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      el.classList.remove('dragging');
+      if (moved) {
+        const n = nodes[id];
+        await fbUpdateNode(id, { x: n.x, y: n.y });
+      }
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  // Touch support
+  el.addEventListener('touchstart', (e) => {
+    if (mode === 'connect') return;
+    if (e.target.classList.contains('node-delete')) return;
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    const n = nodes[id];
+    startNodeX = n.x; startNodeY = n.y;
+    moved = false;
+    el.classList.add('dragging');
+  }, {passive:true});
+
+  el.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    const dx = (t.clientX - startX) / scale;
+    const dy = (t.clientY - startY) / scale;
+    moved = true;
+    const newX = startNodeX + dx;
+    const newY = startNodeY + dy;
+    el.style.left = (newX * scale + panX) + 'px';
+    el.style.top = (newY * scale + panY) + 'px';
+    nodes[id] = { ...nodes[id], x: newX, y: newY };
+    renderConnections();
+    e.preventDefault();
+  }, {passive:false});
+
+  el.addEventListener('touchend', async () => {
+    el.classList.remove('dragging');
+    if (moved) {
+      const n = nodes[id];
+      await fbUpdateNode(id, { x: n.x, y: n.y });
+    }
+  });
+}
+
+// ============================================================
+// CANVAS PAN (middle mouse / right mouse / two-finger)
+// ============================================================
+const canvasWrap = document.getElementById('canvas-wrap');
+
+canvasWrap.addEventListener('mousedown', (e) => {
+  if (mode === 'move' && (e.button === 1 || e.button === 2)) {
+    isPanning = true;
+    panStart = { x: e.clientX - panX, y: e.clientY - panY };
+    canvasWrap.style.cursor = 'grabbing';
+    e.preventDefault();
+  }
+});
+
+canvasWrap.addEventListener('mousemove', (e) => {
+  if (isPanning) {
+    panX = e.clientX - panStart.x;
+    panY = e.clientY - panStart.y;
+    repositionAll();
+  }
+
+  // Moving connection line
+  if (connectingFrom && mode === 'connect') {
+    const fromNode = nodes[connectingFrom];
+    if (fromNode) {
+      const line = document.getElementById('conn-line');
+      const rect = canvasWrap.getBoundingClientRect();
+      line.setAttribute('x1', fromNode.x * scale + panX + 75 * scale);
+      line.setAttribute('y1', fromNode.y * scale + panY + 30 * scale);
+      line.setAttribute('x2', e.clientX - rect.left);
+      line.setAttribute('y2', e.clientY - rect.top);
+      line.setAttribute('opacity', '0.7');
+    }
+  } else {
+    document.getElementById('conn-line').setAttribute('opacity', '0');
+  }
+});
+
+document.addEventListener('mouseup', (e) => {
+  if (isPanning) {
+    isPanning = false;
+    canvasWrap.style.cursor = mode === 'connect' ? 'crosshair' : 'default';
+  }
+});
+
+canvasWrap.addEventListener('contextmenu', e => e.preventDefault());
+
+// Double-click on canvas to add node
+canvasWrap.addEventListener('dblclick', (e) => {
+  if (e.target !== canvasWrap && e.target !== document.getElementById('canvas') && !e.target.closest('#svg-layer')) return;
+  const rect = canvasWrap.getBoundingClientRect();
+  const x = (e.clientX - rect.left - panX) / scale;
+  const y = (e.clientY - rect.top - panY) / scale;
+  openAddModal(x - 75, y - 30);
+});
+
+// ============================================================
+// ZOOM
+// ============================================================
+canvasWrap.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 0.91;
+  const rect = canvasWrap.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  panX = mx - (mx - panX) * factor;
+  panY = my - (my - panY) * factor;
+  scale *= factor;
+  scale = Math.min(Math.max(scale, 0.2), 3);
+  repositionAll();
+  renderConnections();
+}, { passive: false });
+
+function zoom(f) {
+  const wrap = document.getElementById('canvas-wrap');
+  const cx = wrap.clientWidth / 2;
+  const cy = wrap.clientHeight / 2;
+  panX = cx - (cx - panX) * f;
+  panY = cy - (cy - panY) * f;
+  scale *= f;
+  scale = Math.min(Math.max(scale, 0.2), 3);
+  repositionAll();
+  renderConnections();
+}
+
+function resetView() {
+  scale = 1; panX = 0; panY = 0;
+  repositionAll();
+  renderConnections();
+}
+
+function repositionAll() {
+  Object.values(nodes).forEach(n => {
+    const el = document.querySelector(`[data-id="${n.id}"]`);
+    if (el) {
+      el.style.left = (n.x * scale + panX) + 'px';
+      el.style.top = (n.y * scale + panY) + 'px';
+      el.style.transform = `scale(${scale})`;
+    }
+  });
+  renderConnections();
+}
+
+// ============================================================
+// CLEAR
+// ============================================================
+function confirmClear() {
+  if (confirm('Notīrīt visu domu karti? Šī darbība ir neatgriezeniska!')) {
+    fbClearAll();
+  }
+}
+
+// ============================================================
+// INSTRUCTIONS
+// ============================================================
+let instrTimer;
+function showInstructions(text) {
+  const el = document.getElementById('instructions');
+  el.textContent = text;
+  el.style.opacity = '1';
+  clearTimeout(instrTimer);
+  instrTimer = setTimeout(() => { el.style.opacity = '0.6'; }, 4000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+showInstructions('💡 Divkārt klikšķini uz tāfeles, lai pievienotu mezglu • Velc mezglus • Savienot režīmā savieno ar līnijām');
+</script>
+</body>
+</html>
